@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>İndirilenler</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #2c2c2c;
+            color: #e8eaed;
+            min-height: 100vh;
+            padding: 40px 0;
+        }
+
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        .page-container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #e8eaed;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-title i {
+            color: #838383;
+            font-size: 26px;
+        }
+
+        .clear-btn {
+            padding: 8px 16px;
+            background: rgba(242, 139, 130, 0.1);
+            color: #f28b82;
+            border: 1px solid rgba(242, 139, 130, 0.2);
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.15s;
+        }
+
+        .clear-btn:hover {
+            background: rgba(242, 139, 130, 0.2);
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #202124;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 10px 16px;
+            margin-bottom: 24px;
+        }
+
+        .search-bar i {
+            color: #9aa0a6;
+            font-size: 16px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #e8eaed;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .search-bar input::placeholder {
+            color: #9aa0a6;
+        }
+
+        .dl-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            transition: background 0.1s;
+            margin-bottom: 4px;
+        }
+
+        .dl-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .dl-icon {
+            width: 36px;
+            height: 36px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dl-icon img {
+            width: 36px;
+            height: 36px;
+            object-fit: contain;
+        }
+
+        .dl-icon i {
+            font-size: 28px;
+            color: #a78bfa;
+        }
+
+        .dl-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .dl-name {
+            font-size: 13px;
+            color: #e8eaed;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-bottom: 3px;
+        }
+
+        .dl-meta {
+            font-size: 11px;
+            color: #9aa0a6;
+        }
+
+        .dl-state {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+
+        .dl-state.completed {
+            background: rgba(52, 168, 83, 0.15);
+            color: #34a853;
+        }
+
+        .dl-state.cancelled {
+            background: rgba(234, 67, 53, 0.15);
+            color: #ea4335;
+        }
+
+        .dl-state.interrupted {
+            background: rgba(251, 188, 4, 0.15);
+            color: #fbbc04;
+        }
+
+        .dl-actions {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .dl-action-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: transparent;
+            color: #9aa0a6;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .dl-action-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #e8eaed;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 0;
+            color: #5f6368;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 12px;
+            color: #3c4043;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        .dl-size {
+            font-size: 11px;
+            color: #5f6368;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-container">
+        <div class="page-header">
+            <div class="page-title">
+                <i class="fa-solid fa-circle-down"></i>
+                İndirilenler
+            </div>
+            <button class="clear-btn" id="clearAllBtn">
+                <i class="fa-solid fa-trash-can"></i> Tümünü Temizle
+            </button>
+        </div>
+        <div class="search-bar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchInput" placeholder="İndirilenler içinde ara...">
+        </div>
+        <div id="dlList"></div>
+    </div>
+    <script>
+        let allDownloads = [];
+
+        function formatBytes(bytes) {
+            if (!bytes || bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        function getExtIcon(filename) {
+            const ext = (filename || '').split('.').pop().toLowerCase();
+            const map = {
+                pdf: 'fa-solid fa-file-pdf', zip: 'fa-solid fa-file-zipper', rar: 'fa-solid fa-file-zipper',
+                mp4: 'fa-solid fa-file-video', mkv: 'fa-solid fa-file-video', avi: 'fa-solid fa-file-video',
+                mp3: 'fa-solid fa-file-audio', wav: 'fa-solid fa-file-audio',
+                jpg: 'fa-solid fa-file-image', jpeg: 'fa-solid fa-file-image', png: 'fa-solid fa-file-image',
+                exe: 'fa-solid fa-terminal', msi: 'fa-solid fa-terminal',
+                doc: 'fa-solid fa-file-word', docx: 'fa-solid fa-file-word',
+            };
+            return map[ext] || 'fa-solid fa-file';
+        }
+
+        function render(filter = '') {
+            const list = document.getElementById('dlList');
+            list.innerHTML = '';
+
+            let items = [...allDownloads];
+            if (filter) {
+                const q = filter.toLowerCase();
+                items = items.filter(d => d.filename.toLowerCase().includes(q));
+            }
+
+            if (items.length === 0) {
+                list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-circle-down"></i><p>Henüz indirme yok</p></div>`;
+                return;
+            }
+
+            items.forEach((dl) => {
+                const el = document.createElement('div');
+                el.className = 'dl-item';
+
+                const iconHtml = dl.fileIcon
+                    ? `<img src="${dl.fileIcon}" alt="">`
+                    : `<i class="${getExtIcon(dl.filename)}"></i>`;
+
+                const stateLabel = dl.state === 'completed' ? 'Tamamlandı'
+                    : dl.state === 'cancelled' ? 'İptal edildi' : 'Kesintiye uğradı';
+
+                const date = dl.date ? new Date(dl.date).toLocaleDateString('tr-TR', {
+                    day: '2-digit', month: 'short', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                }) : '';
+
+                const safePathAttr = (dl.savePath || '').replace(/"/g, '&quot;');
+
+                el.innerHTML = `
+                <div class="dl-icon">${iconHtml}</div>
+                <div class="dl-info">
+                    <div class="dl-name" title="${dl.filename}">${dl.filename}</div>
+                    <div class="dl-meta">${date}${dl.totalBytes ? ' · ' + formatBytes(dl.totalBytes) : ''}</div>
+                </div>
+                <span class="dl-state ${dl.state}">${stateLabel}</span>
+                <div class="dl-actions">
+                    ${dl.state === 'completed' ? `<button class="dl-action-btn folder-btn" title="Klasörde göster" data-path="${safePathAttr}"><i class="fa-solid fa-folder-open"></i></button>` : ''}
+                    <button class="dl-action-btn del-btn" title="Listeden kaldır"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            `;
+
+                const folderBtn = el.querySelector('.folder-btn');
+                if (folderBtn) {
+                    folderBtn.addEventListener('click', () => {
+                        const { ipcRenderer } = require('electron');
+                        ipcRenderer.send('open-file-location', folderBtn.dataset.path);
+                    });
+                }
+
+                el.querySelector('.del-btn').addEventListener('click', () => {
+                    allDownloads = allDownloads.filter(d => d.id !== dl.id);
+                    const { ipcRenderer } = require('electron');
+                    ipcRenderer.send('downloads-delete-item', dl.id);
+                    render(document.getElementById('searchInput').value);
+                });
+
+                list.appendChild(el);
+            });
+        }
+
+        document.getElementById('searchInput').addEventListener('input', e => render(e.target.value));
+
+        document.getElementById('clearAllBtn').addEventListener('click', () => {
+            allDownloads = [];
+            const { ipcRenderer } = require('electron');
+            ipcRenderer.send('downloads-clear-all');
+            render();
+        });
+
+        function loadData() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const raw = params.get('data');
+                if (raw) {
+                    allDownloads = JSON.parse(raw);
+                    return;
+                }
+            } catch (e) { }
+            if (window.__xenixaDownloads) {
+                allDownloads = window.__xenixaDownloads;
+            }
+        }
+
+        loadData();
+        render();
+    </script>
+</body>
+
+</html>

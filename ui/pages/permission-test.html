@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İzin Testi</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: #1a1a1a;
+            color: #e8eaed;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            padding: 40px;
+            min-height: 100vh;
+        }
+        h1 { font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+        p { color: #9aa0a6; font-size: 13px; margin-bottom: 32px; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+        }
+        .btn {
+            background: #2c2c2c;
+            border: 1px solid #3c3c3c;
+            border-radius: 12px;
+            color: #e8eaed;
+            cursor: pointer;
+            padding: 16px 18px;
+            text-align: left;
+            transition: background 0.15s, border-color 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+        }
+        .btn:hover { background: #363636; border-color: #555; }
+        .btn:active { background: #404040; }
+        .btn-icon {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .icon-notif  { background: linear-gradient(135deg, #7c3aed, #a78bfa); }
+        .icon-loc    { background: linear-gradient(135deg, #10b981, #0ea5e9); }
+        .icon-cam    { background: linear-gradient(135deg, #0ea5e9, #6366f1); }
+        .icon-mic    { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+        .icon-midi   { background: linear-gradient(135deg, #f97316, #be185d); }
+        .icon-ptr    { background: linear-gradient(135deg, #14b8a6, #8b5cf6); }
+        .icon-clip   { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+        .icon-sensor { background: linear-gradient(135deg, #ec4899, #f43f5e); }
+        .btn-label { flex: 1; }
+        .btn-label strong { display: block; font-weight: 600; margin-bottom: 2px; }
+        .btn-label span { color: #9aa0a6; font-size: 11px; }
+        .result {
+            margin-top: 24px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 13px;
+            display: none;
+        }
+        .result.granted  { background: #14532d33; border: 1px solid #16a34a55; color: #4ade80; }
+        .result.denied   { background: #7f1d1d33; border: 1px solid #dc262655; color: #f87171; }
+        .result.error    { background: #78350f33; border: 1px solid #d9770655; color: #fbbf24; }
+    </style>
+</head>
+<body>
+    <h1>İzin İstekleri Test Sayfası</h1>
+    <p>Aşağıdaki butonlara tıklayarak farklı izin türlerini test edebilirsin. Xenixa'nın permission bubble'ı her biri için farklı görünmeli.</p>
+
+    <div class="grid">
+        <button class="btn" onclick="testNotification()">
+            <div class="btn-icon icon-notif">🔔</div>
+            <div class="btn-label">
+                <strong>Bildirim</strong>
+                <span>notifications</span>
+            </div>
+        </button>
+
+        <button class="btn" onclick="testGeolocation()">
+            <div class="btn-icon icon-loc">📍</div>
+            <div class="btn-label">
+                <strong>Konum</strong>
+                <span>geolocation</span>
+            </div>
+        </button>
+
+        <button class="btn" onclick="testCamera()">
+            <div class="btn-icon icon-cam">📷</div>
+            <div class="btn-label">
+                <strong>Kamera</strong>
+                <span>media (video)</span>
+            </div>
+        </button>
+
+        <button class="btn" onclick="testMicrophone()">
+            <div class="btn-icon icon-mic">🎤</div>
+            <div class="btn-label">
+                <strong>Mikrofon</strong>
+                <span>media (audio)</span>
+            </div>
+        </button>
+
+        <button class="btn" onclick="testCameraAndMic()">
+            <div class="btn-icon icon-cam">🎥</div>
+            <div class="btn-label">
+                <strong>Kamera + Mikrofon</strong>
+                <span>media (video+audio)</span>
+            </div>
+        </button>
+
+        <button class="btn" onclick="testClipboardRead()">
+            <div class="btn-icon icon-clip">📋</div>
+            <div class="btn-label">
+                <strong>Pano Okuma</strong>
+                <span>clipboard-read</span>
+            </div>
+        </button>
+
+        <button class="btn" onclick="testClipboardWrite()">
+            <div class="btn-icon icon-clip">📋</div>
+            <div class="btn-label">
+                <strong>Pano Yazma</strong>
+                <span>clipboard-write</span>
+            </div>
+        </button>
+
+        <button class="btn" onclick="testMotion()">
+            <div class="btn-icon icon-sensor">📱</div>
+            <div class="btn-label">
+                <strong>Hareket Sensörü</strong>
+                <span>accelerometer / gyroscope</span>
+            </div>
+        </button>
+
+        <button class="btn" onclick="testPointerLock()">
+            <div class="btn-icon icon-ptr">🖱️</div>
+            <div class="btn-label">
+                <strong>İmleç Kilidi</strong>
+                <span>pointerLock</span>
+            </div>
+        </button>
+
+        <button class="btn" onclick="testMidi()">
+            <div class="btn-icon icon-midi">🎹</div>
+            <div class="btn-label">
+                <strong>MIDI</strong>
+                <span>midiSysex</span>
+            </div>
+        </button>
+    </div>
+
+    <div class="result" id="result"></div>
+
+    <script>
+        function showResult(msg, type) {
+            const el = document.getElementById('result');
+            el.textContent = msg;
+            el.className = 'result ' + type;
+            el.style.display = 'block';
+        }
+
+        function testNotification() {
+            Notification.requestPermission().then(p => {
+                showResult('Bildirim izni: ' + p, p === 'granted' ? 'granted' : 'denied');
+            }).catch(e => showResult('Hata: ' + e, 'error'));
+        }
+
+        function testGeolocation() {
+            navigator.geolocation.getCurrentPosition(
+                pos => showResult(`Konum alındı: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`, 'granted'),
+                err => showResult('Konum reddedildi: ' + err.message, 'denied')
+            );
+        }
+
+        function testCamera() {
+            navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+                .then(s => { s.getTracks().forEach(t => t.stop()); showResult('Kamera izni verildi', 'granted'); })
+                .catch(e => showResult('Kamera reddedildi: ' + e.message, 'denied'));
+        }
+
+        function testMicrophone() {
+            navigator.mediaDevices.getUserMedia({ video: false, audio: true })
+                .then(s => { s.getTracks().forEach(t => t.stop()); showResult('Mikrofon izni verildi', 'granted'); })
+                .catch(e => showResult('Mikrofon reddedildi: ' + e.message, 'denied'));
+        }
+
+        function testCameraAndMic() {
+            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                .then(s => { s.getTracks().forEach(t => t.stop()); showResult('Kamera + Mikrofon izni verildi', 'granted'); })
+                .catch(e => showResult('Reddedildi: ' + e.message, 'denied'));
+        }
+
+        function testClipboardRead() {
+            navigator.clipboard.readText()
+                .then(t => showResult('Pano okundu: ' + (t.slice(0, 40) || '(boş)'), 'granted'))
+                .catch(e => showResult('Pano okuma reddedildi: ' + e.message, 'denied'));
+        }
+
+        function testClipboardWrite() {
+            navigator.clipboard.writeText('Xenixa test metni')
+                .then(() => showResult('Panoya yazıldı', 'granted'))
+                .catch(e => showResult('Pano yazma reddedildi: ' + e.message, 'denied'));
+        }
+
+        function testMotion() {
+            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission()
+                    .then(p => showResult('Hareket sensörü: ' + p, p === 'granted' ? 'granted' : 'denied'))
+                    .catch(e => showResult('Hata: ' + e, 'error'));
+            } else {
+                window.addEventListener('devicemotion', function handler(e) {
+                    window.removeEventListener('devicemotion', handler);
+                    showResult('Hareket sensörü erişildi (izin gerekmedi)', 'granted');
+                }, { once: true });
+                setTimeout(() => showResult('Hareket sensörü: Bu cihazda desteklenmiyor', 'error'), 500);
+            }
+        }
+
+        function testPointerLock() {
+            document.body.requestPointerLock();
+            setTimeout(() => {
+                if (document.pointerLockElement) {
+                    document.exitPointerLock();
+                    showResult('İmleç kilidi verildi', 'granted');
+                } else {
+                    showResult('İmleç kilidi reddedildi veya desteklenmiyor', 'denied');
+                }
+            }, 300);
+        }
+
+        function testMidi() {
+            if (navigator.requestMIDIAccess) {
+                navigator.requestMIDIAccess({ sysex: true })
+                    .then(() => showResult('MIDI erişimi verildi', 'granted'))
+                    .catch(e => showResult('MIDI reddedildi: ' + e.message, 'denied'));
+            } else {
+                showResult('MIDI bu ortamda desteklenmiyor', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

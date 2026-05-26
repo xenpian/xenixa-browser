@@ -1,0 +1,75 @@
+{
+  "name": "xenixa-browser",
+  "version": "1.0.0",
+  "description": "Custom Chromium-based browser with Electron",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron . --dev",
+    "start-prod": "electron .",
+    "build-native": "node-gyp rebuild",
+    "rebuild": "electron-rebuild -f -w",
+    "dist": "electron-builder --win --x64",
+    "dist:dir": "electron-builder --win --x64 --dir"
+  },
+  "keywords": ["electron", "chromium", "browser"],
+  "author": "Xenixa",
+  "license": "MIT",
+  "gypfile": false,
+  "build": {
+    "appId": "com.xenixa.browser",
+    "productName": "Xenixa Browser",
+    "copyright": "Copyright © 2024 Xenixa",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "ui/**/*",
+      "node_modules/**/*",
+      "package.json",
+      "!node_modules/.cache",
+      "!**/*.map",
+      "!dist/**/*",
+      "!installer-assets/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "installer-assets/",
+        "to": "installer-assets/",
+        "filter": ["**/*"]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "ui/assets/logo.png",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Xenixa Browser",
+      "perMachine": false,
+      "installerLanguages": ["en_US"],
+      "language": "1033"
+    }
+  },
+  "devDependencies": {
+    "chokidar": "^3.5.3",
+    "electron": "^28.0.0",
+    "electron-builder": "^24.13.3",
+    "electron-rebuild": "^3.2.9",
+    "node-gyp": "^10.0.1"
+  },
+  "dependencies": {
+    "electron-store": "^8.1.0",
+    "nan": "^2.18.0"
+  }
+}

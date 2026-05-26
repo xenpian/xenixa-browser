@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ayarlar</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #2c2c2c;
+            color: #e8eaed;
+            min-height: 100vh;
+            padding: 40px 0;
+        }
+
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        .page-container {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #e8eaed;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .page-title i {
+            color: #a78bfa;
+            font-size: 26px;
+        }
+
+        .settings-section {
+            background: #2c2c2c;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 14px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .settings-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #9aa0a6;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 14px 18px 8px 18px;
+        }
+
+        .settings-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            gap: 16px;
+        }
+
+        .settings-row:first-of-type {
+            border-top: none;
+        }
+
+        .settings-row-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .settings-row-label {
+            font-size: 14px;
+            color: #e8eaed;
+        }
+
+        .settings-row-desc {
+            font-size: 12px;
+            color: #9aa0a6;
+            margin-top: 3px;
+        }
+
+        /* Toggle */
+        .toggle {
+            position: relative;
+            width: 40px;
+            height: 22px;
+            flex-shrink: 0;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: #3c4043;
+            border-radius: 22px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            left: 3px;
+            top: 3px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+
+        .toggle input:checked+.toggle-slider {
+            background: #a78bfa;
+        }
+
+        .toggle input:checked+.toggle-slider::before {
+            transform: translateX(18px);
+        }
+
+        /* Select */
+        .settings-select {
+            background: #2c2c2c;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #e8eaed;
+            font-size: 13px;
+            padding: 6px 10px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .settings-select option {
+            background: #2c2c2c;
+        }
+
+        /* Danger button */
+        .danger-btn {
+            padding: 8px 16px;
+            background: rgba(242, 139, 130, 0.1);
+            color: #f28b82;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            width: 90px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .danger-btn:hover {
+            background: rgba(242, 139, 130, 0.2);
+        }
+
+        .version-text {
+            font-size: 12px;
+            color: #5f6368;
+        }
+
+        /* Araç doğrulama kartları */
+        .tool-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 16px 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .tool-card:first-of-type {
+            border-top: none;
+        }
+
+        .tool-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .tool-icon.warp {
+            background: rgba(249, 115, 22, 0.15);
+            color: #f97316;
+        }
+
+        .tool-icon.tor {
+            background: rgba(124, 58, 237, 0.15);
+            color: #7c3aed;
+        }
+
+        .tool-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .tool-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #e8eaed;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tool-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 20px;
+            letter-spacing: 0.3px;
+        }
+
+        .tool-badge.found {
+            background: rgba(52, 211, 153, 0.15);
+            color: #34d399;
+        }
+
+        .tool-badge.not-found {
+            background: rgba(248, 113, 113, 0.15);
+            color: #f87171;
+        }
+
+        .tool-badge.running {
+            background: rgba(52, 211, 153, 0.2);
+            color: #34d399;
+        }
+
+        .tool-badge.checking {
+            background: rgba(156, 163, 175, 0.15);
+            color: #9ca3af;
+        }
+
+        .tool-path {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 4px;
+            font-family: 'Consolas', monospace;
+            word-break: break-all;
+        }
+
+        .tool-path.found {
+            color: #34d399;
+        }
+
+        .tool-desc {
+            font-size: 12px;
+            color: #9aa0a6;
+            margin-top: 4px;
+            line-height: 1.5;
+        }
+
+        .tool-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tool-check-btn {
+            padding: 6px 14px;
+            background: rgba(167, 139, 250, 0.1);
+            color: #a78bfa;
+            border: 1px solid rgba(167, 139, 250, 0.2);
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tool-check-btn:hover {
+            background: rgba(167, 139, 250, 0.2);
+        }
+
+        .tool-download-link {
+            padding: 6px 14px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #9aa0a6;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .tool-download-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e8eaed;
+        }
+
+        .tool-paths-detail {
+            margin-top: 8px;
+            font-size: 11px;
+            color: #5f6368;
+        }
+
+        .tool-paths-detail summary {
+            cursor: pointer;
+            color: #6b7280;
+            user-select: none;
+        }
+
+        .tool-paths-detail summary:hover {
+            color: #9aa0a6;
+        }
+
+        .tool-paths-list {
+            margin-top: 6px;
+            padding-left: 12px;
+            list-style: none;
+        }
+
+        .tool-paths-list li {
+            font-family: 'Consolas', monospace;
+            font-size: 10px;
+            color: #4b5563;
+            padding: 2px 0;
+            word-break: break-all;
+        }
+
+        /* Text input for paths */
+        .settings-input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        .settings-input {
+            flex: 1;
+            background: #1e1e1e;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #e8eaed;
+            font-size: 12px;
+            padding: 8px 12px;
+            outline: none;
+            font-family: 'Consolas', monospace;
+            transition: border-color 0.2s;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .settings-input:focus {
+            border-color: #a78bfa;
+        }
+
+        .settings-input.invalid {
+            border-color: #f87171;
+        }
+
+        .settings-input.valid {
+            border-color: #34d399;
+        }
+
+        /* Action buttons for path */
+        .path-action-btn {
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #e8eaed;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .path-action-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .path-action-btn.primary {
+            background: rgba(167, 139, 250, 0.15);
+            color: #a78bfa;
+            border-color: rgba(167, 139, 250, 0.3);
+        }
+
+        .path-action-btn.primary:hover {
+            background: rgba(167, 139, 250, 0.25);
+            border-color: rgba(167, 139, 250, 0.4);
+        }
+
+        .tool-actions-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .tool-left-btns {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tool-right-links {
+            display: flex;
+            align-items: center;
+        }
+
+        .spin {
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-container">
+        <div class="page-title">
+            <i class="fa-solid fa-gear"></i>
+            Ayarlar
+        </div>
+
+        <!-- Arama Motoru -->
+        <div class="settings-section">
+            <div class="settings-section-title">Arama</div>
+            <div class="settings-row">
+                <div class="settings-row-info">
+                    <div class="settings-row-label">Varsayılan Arama Motoru</div>
+                    <div class="settings-row-desc">URL çubuğundan yapılan aramalarda kullanılır</div>
+                </div>
+                <select class="settings-select" id="searchEngineSelect">
+                    <option value="google">Google</option>
+                    <option value="duckduckgo">DuckDuckGo</option>
+                    <option value="yahoo">Yahoo Search</option>
+                    <option value="yandex">Yandex</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Görünüm -->
+        <div class="settings-section">
+            <div class="settings-section-title">Görünüm</div>
+            <div class="settings-row">
+                <div class="settings-row-info">
+                    <div class="settings-row-label">Sekme Yükleme Animasyonu</div>
+                    <div class="settings-row-desc">Sayfa yüklenirken dönen ikon göster</div>
+                </div>
+                <label class="toggle">
+                    <input type="checkbox" id="tabSpinnerToggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Gizlilik -->
+        <div class="settings-section">
+            <div class="settings-section-title">Gizlilik & Veri</div>
+            <div class="settings-row">
+                <div class="settings-row-info">
+                    <div class="settings-row-label">Arama Geçmişini Temizle</div>
+                    <div class="settings-row-desc">Tüm arama ve ziyaret geçmişini sil</div>
+                </div>
+                <button class="danger-btn" id="clearHistoryBtn">Temizle</button>
+            </div>
+            <div class="settings-row">
+                <div class="settings-row-info">
+                    <div class="settings-row-label">İndirme Geçmişini Temizle</div>
+                    <div class="settings-row-desc">İndirme listesini temizle (dosyalar silinmez)</div>
+                </div>
+                <button class="danger-btn" id="clearDownloadsBtn">Temizle</button>
+            </div>
+            <div class="settings-row">
+                <div class="settings-row-info">
+                    <div class="settings-row-label">Tüm Verileri Sıfırla</div>
+                    <div class="settings-row-desc">Geçmiş, ayarlar ve tüm kayıtlı verileri sil</div>
+                </div>
+                <button class="danger-btn" id="clearAllBtn">Sıfırla</button>
+            </div>
+        </div>
+
+        <!-- Araçlar -->
+        <div class="settings-section">
+            <div class="settings-section-title">Araçlar & Gizlilik</div>
+
+            <!-- Cloudflare WARP -->
+            <div class="tool-card">
+                <div class="tool-icon warp">
+                    <i class="ri-shield-flash-line"></i>
+                </div>
+                <div class="tool-body">
+                    <div class="tool-name">
+                        Cloudflare WARP
+                        <span class="tool-badge checking" id="warpBadge">Kontrol ediliyor…</span>
+                    </div>
+                    <div class="tool-desc">DNS şifreleme ve VPN tüneli sağlar. `warp-cli.exe` konumunu belirleyin.</div>
+                    
+                    <div class="settings-input-group">
+                        <input type="text" class="settings-input" id="warpPathInput" placeholder="warp-cli.exe dosya yolu">
+                        <button class="path-action-btn" id="warpBrowseBtn">
+                            <i class="ri-folder-open-line"></i> Gözat
+                        </button>
+                    </div>
+
+                    <div class="tool-actions-row">
+                        <div class="tool-left-btns">
+                            <button class="path-action-btn primary" id="warpCheckBtn">
+                                <i class="ri-refresh-line"></i> Doğrula ve Kaydet
+                            </button>
+                            <button class="path-action-btn" id="warpResetBtn" title="Varsayılan konumlara sıfırla">
+                                <i class="ri-history-line"></i> Sıfırla
+                            </button>
+                        </div>
+                        <div class="tool-right-links">
+                            <a class="tool-download-link" href="#" id="warpDownloadLink"
+                               onclick="openExternal('https://one.one.one.one/'); return false;">
+                                <i class="ri-download-line"></i> İndir (one.one.one.one)
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="tool-path" id="warpPath" style="margin-top: 8px; display: none;">—</div>
+                    
+                    <details class="tool-paths-detail" id="warpPathsDetail" style="margin-top: 12px;">
+                        <summary>Varsayılan aranan konumlar</summary>
+                        <ul class="tool-paths-list" id="warpPathsList"></ul>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Tor Browser -->
+            <div class="tool-card">
+                <div class="tool-icon tor">
+                    <i class="ri-spy-line"></i>
+                </div>
+                <div class="tool-body">
+                    <div class="tool-name">
+                        Tor Browser
+                        <span class="tool-badge checking" id="torBadge">Kontrol ediliyor…</span>
+                        <span class="tool-badge running" id="torRunningBadge" style="display:none">Çalışıyor</span>
+                    </div>
+                    <div class="tool-desc">.onion siteleri açmak için `tor.exe` konumunu belirleyin.</div>
+                    
+                    <div class="settings-input-group">
+                        <input type="text" class="settings-input" id="torPathInput" placeholder="tor.exe dosya yolu">
+                        <button class="path-action-btn" id="torBrowseBtn">
+                            <i class="ri-folder-open-line"></i> Gözat
+                        </button>
+                    </div>
+
+                    <div class="tool-actions-row">
+                        <div class="tool-left-btns">
+                            <button class="path-action-btn primary" id="torCheckBtn">
+                                <i class="ri-refresh-line"></i> Doğrula ve Kaydet
+                            </button>
+                            <button class="path-action-btn" id="torResetBtn" title="Varsayılan konumlara sıfırla">
+                                <i class="ri-history-line"></i> Sıfırla
+                            </button>
+                        </div>
+                        <div class="tool-right-links">
+                            <a class="tool-download-link" href="#"
+                               onclick="openExternal('https://www.torproject.org/download/'); return false;">
+                                <i class="ri-download-line"></i> İndir (torproject.org)
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="tool-path" id="torPath" style="margin-top: 8px; display: none;">—</div>
+
+                    <details class="tool-paths-detail" id="torPathsDetail" style="margin-top: 12px;">
+                        <summary>Varsayılan aranan konumlar</summary>
+                        <ul class="tool-paths-list" id="torPathsList"></ul>
+                    </details>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hakkında -->
+        <div class="settings-section">
+            <div class="settings-section-title">Hakkında</div>
+            <div class="settings-row">
+                <div class="settings-row-info">
+                    <div class="settings-row-label">Xenixa Browser</div>
+                    <div class="settings-row-desc">Electron tabanlı özel tarayıcı</div>
+                </div>
+                <span class="version-text">v1.0.0</span>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Arama motoru
+        const engineSelect = document.getElementById('searchEngineSelect');
+        engineSelect.value = localStorage.getItem('xenixa_search_engine') || 'google';
+        engineSelect.addEventListener('change', () => {
+            localStorage.setItem('xenixa_search_engine', engineSelect.value);
+        });
+
+        // Geçmiş temizle
+        document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+            localStorage.removeItem('xenixa_history');
+            localStorage.removeItem('xenixa_visited_tabs');
+            localStorage.removeItem('xenixa_visit_counts');
+            alert('Arama geçmişi temizlendi.');
+        });
+
+        // İndirme geçmişi temizle
+        document.getElementById('clearDownloadsBtn').addEventListener('click', () => {
+            localStorage.removeItem('xenixa_downloads_history');
+            alert('İndirme geçmişi temizlendi.');
+        });
+
+        // Tümünü sıfırla
+        document.getElementById('clearAllBtn').addEventListener('click', () => {
+            if (confirm('Tüm veriler silinecek. Emin misin?')) {
+                localStorage.clear();
+                alert('Tüm veriler sıfırlandı.');
+            }
+        });
+
+        // ── Araç Konumu Doğrulama ─────────────────────────────────────────────
+        const { ipcRenderer } = require('electron');
+
+        function openExternal(url) {
+            const { shell } = require('electron');
+            shell.openExternal(url);
+        }
+
+        function setChecking() {
+            ['warpBadge', 'torBadge'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.className = 'tool-badge checking';
+                    el.innerHTML = '<span class="spin">⟳</span> Kontrol ediliyor…';
+                }
+            });
+            const torRunning = document.getElementById('torRunningBadge');
+            if (torRunning) torRunning.style.display = 'none';
+        }
+
+        async function checkTools() {
+            setChecking();
+            try {
+                const result = await ipcRenderer.invoke('check-tool-paths');
+
+                // WARP
+                const warpBadge = document.getElementById('warpBadge');
+                const warpPath = document.getElementById('warpPath');
+                const warpPathsList = document.getElementById('warpPathsList');
+                const warpPathInput = document.getElementById('warpPathInput');
+
+                if (result.warp.customPath) {
+                    warpPathInput.value = result.warp.customPath;
+                } else if (result.warp.found) {
+                    warpPathInput.value = result.warp.path;
+                } else {
+                    warpPathInput.value = '';
+                }
+
+                if (result.warp.found) {
+                    warpBadge.className = 'tool-badge found';
+                    warpBadge.textContent = '✓ Kurulu';
+                    warpPathInput.className = 'settings-input valid';
+                    warpPath.className = 'tool-path found';
+                    warpPath.textContent = result.warp.path;
+                } else {
+                    warpBadge.className = 'tool-badge not-found';
+                    warpBadge.textContent = '✗ Bulunamadı';
+                    warpPathInput.className = 'settings-input invalid';
+                    warpPath.className = 'tool-path';
+                    warpPath.textContent = 'Kurulu değil';
+                }
+
+                if (warpPathsList && result.warp.checkedPaths) {
+                    warpPathsList.innerHTML = result.warp.checkedPaths
+                        .map(p => `<li>${p}</li>`).join('');
+                }
+
+                // Tor
+                const torBadge = document.getElementById('torBadge');
+                const torPath = document.getElementById('torPath');
+                const torRunningBadge = document.getElementById('torRunningBadge');
+                const torPathsList = document.getElementById('torPathsList');
+                const torPathInput = document.getElementById('torPathInput');
+
+                if (result.tor.customPath) {
+                    torPathInput.value = result.tor.customPath;
+                } else if (result.tor.found) {
+                    torPathInput.value = result.tor.path;
+                } else {
+                    torPathInput.value = '';
+                }
+
+                if (result.tor.found) {
+                    torBadge.className = 'tool-badge found';
+                    torBadge.textContent = '✓ Kurulu';
+                    torPathInput.className = 'settings-input valid';
+                    torPath.className = 'tool-path found';
+                    torPath.textContent = result.tor.path;
+                } else {
+                    torBadge.className = 'tool-badge not-found';
+                    torBadge.textContent = '✗ Bulunamadı';
+                    torPathInput.className = 'settings-input invalid';
+                    torPath.className = 'tool-path';
+                    torPath.textContent = 'Kurulu değil';
+                }
+
+                if (result.tor.running) {
+                    torRunningBadge.style.display = 'inline-flex';
+                    torRunningBadge.textContent = `● Çalışıyor (port ${result.tor.activePort})`;
+                } else {
+                    torRunningBadge.style.display = 'none';
+                }
+
+                if (torPathsList && result.tor.checkedPaths) {
+                    torPathsList.innerHTML = result.tor.checkedPaths
+                        .map(p => `<li>${p}</li>`).join('');
+                }
+
+            } catch (err) {
+                console.error('check-tool-paths hatası:', err);
+                ['warpBadge', 'torBadge'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) { el.className = 'tool-badge not-found'; el.textContent = 'Hata'; }
+                });
+            }
+        }
+
+        // ── Buton Olay Dinleyicileri ──────────────────────────────────────────
+        // Cloudflare WARP Olayları
+        document.getElementById('warpBrowseBtn').addEventListener('click', async () => {
+            const chosen = await ipcRenderer.invoke('browse-tool-path', { type: 'warp' });
+            if (chosen) {
+                document.getElementById('warpPathInput').value = chosen;
+                await ipcRenderer.invoke('save-tool-paths', { warpPath: chosen });
+                await checkTools();
+            }
+        });
+
+        document.getElementById('warpCheckBtn').addEventListener('click', async () => {
+            const pathVal = document.getElementById('warpPathInput').value.trim();
+            await ipcRenderer.invoke('save-tool-paths', { warpPath: pathVal });
+            await checkTools();
+        });
+
+        document.getElementById('warpResetBtn').addEventListener('click', async () => {
+            document.getElementById('warpPathInput').value = '';
+            await ipcRenderer.invoke('save-tool-paths', { warpPath: '' });
+            await checkTools();
+        });
+
+        // Tor Browser Olayları
+        document.getElementById('torBrowseBtn').addEventListener('click', async () => {
+            const chosen = await ipcRenderer.invoke('browse-tool-path', { type: 'tor' });
+            if (chosen) {
+                document.getElementById('torPathInput').value = chosen;
+                await ipcRenderer.invoke('save-tool-paths', { torPath: chosen });
+                await checkTools();
+            }
+        });
+
+        document.getElementById('torCheckBtn').addEventListener('click', async () => {
+            const pathVal = document.getElementById('torPathInput').value.trim();
+            await ipcRenderer.invoke('save-tool-paths', { torPath: pathVal });
+            await checkTools();
+        });
+
+        document.getElementById('torResetBtn').addEventListener('click', async () => {
+            document.getElementById('torPathInput').value = '';
+            await ipcRenderer.invoke('save-tool-paths', { torPath: '' });
+            await checkTools();
+        });
+
+        // Sayfa açılınca otomatik kontrol et
+        checkTools();
+        // ─────────────────────────────────────────────────────────────────────
+    </script>
+</body>
+
+</html>

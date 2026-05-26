@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Geçmiş</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #2c2c2c;
+            color: #e8eaed;
+            min-height: 100vh;
+            padding: 40px 0;
+        }
+
+        .page-container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #e8eaed;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-title i {
+            color: #838383;
+            font-size: 26px;
+        }
+
+        .clear-btn {
+            padding: 8px 16px;
+            background: rgba(242, 139, 130, 0.1);
+            color: #f28b82;
+            border: 1px solid rgba(242, 139, 130, 0.2);
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.15s;
+        }
+
+        .clear-btn:hover {
+            background: rgba(242, 139, 130, 0.2);
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #202124;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 10px 16px;
+            margin-bottom: 24px;
+        }
+
+        .search-bar i {
+            color: #9aa0a6;
+            font-size: 16px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #e8eaed;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .search-bar input::placeholder {
+            color: #9aa0a6;
+        }
+
+        .history-group {
+            margin-bottom: 28px;
+        }
+
+        .group-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #9aa0a6;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            padding: 0 4px;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .history-item img {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        .history-item-icon {
+            width: 16px;
+            height: 16px;
+            font-size: 14px;
+            color: #9aa0a6;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .history-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .history-item-title {
+            font-size: 13px;
+            color: #e8eaed;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .history-item-url {
+            font-size: 11px;
+            color: #9aa0a6;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-top: 2px;
+        }
+
+        .history-item-time {
+            font-size: 11px;
+            color: #5f6368;
+            flex-shrink: 0;
+        }
+
+        .history-item-del {
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: transparent;
+            color: #5f6368;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.15s, background 0.15s, color 0.15s;
+        }
+
+        .history-item:hover .history-item-del {
+            opacity: 1;
+        }
+
+        .history-item-del:hover {
+            background: rgba(242, 139, 130, 0.15);
+            color: #f28b82;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 0;
+            color: #5f6368;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 12px;
+            color: #3c4043;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        .visit-count {
+            font-size: 11px;
+            color: #a78bfa;
+            background: rgba(167, 139, 250, 0.1);
+            padding: 2px 7px;
+            border-radius: 10px;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-container">
+        <div class="page-header">
+            <div class="page-title">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                Geçmiş
+            </div>
+            <button class="clear-btn" id="clearAllBtn">
+                <i class="fa-solid fa-trash-can"></i> Tümünü Temizle
+            </button>
+        </div>
+        <div class="search-bar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchInput" placeholder="Geçmişte ara...">
+        </div>
+        <div id="historyList"></div>
+    </div>
+    <script>
+        let visitedTabs = [];
+        let siteVisitCounts = {};
+        let searchHistory = [];
+
+        function load() {
+            // Önce URL'den veriyi oku (ana renderer'dan geçirildi)
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const raw = params.get('data');
+                if (raw) {
+                    const data = JSON.parse(raw);
+                    visitedTabs = data.visitedTabs || [];
+                    siteVisitCounts = data.siteVisitCounts || {};
+                    searchHistory = data.searchHistory || [];
+                    return;
+                }
+            } catch (e) { }
+            // Fallback: executeJavaScript ile inject edilmiş veri
+            if (window.__xenixaData) {
+                visitedTabs = window.__xenixaData.visitedTabs || [];
+                siteVisitCounts = window.__xenixaData.siteVisitCounts || {};
+                searchHistory = window.__xenixaData.searchHistory || [];
+            }
+        }
+
+        function render(filter = '') {
+            const list = document.getElementById('historyList');
+            list.innerHTML = '';
+
+            let items = visitedTabs.map(t => ({
+                title: t.title || t.url,
+                url: t.url,
+                favicon: t.favicon || null,
+                count: siteVisitCounts[t.url] || 1,
+            }));
+
+            if (filter) {
+                const q = filter.toLowerCase();
+                items = items.filter(i => i.title.toLowerCase().includes(q) || i.url.toLowerCase().includes(q));
+            }
+
+            if (items.length === 0) {
+                list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-clock-rotate-left"></i><p>Geçmiş bulunamadı</p></div>`;
+                return;
+            }
+
+            const group = document.createElement('div');
+            group.className = 'history-group';
+
+            items.forEach((item) => {
+                const el = document.createElement('div');
+                el.className = 'history-item';
+
+                const faviconHtml = item.favicon
+                    ? `<img src="${item.favicon}" alt="" onerror="this.style.display='none'">`
+                    : `<div class="history-item-icon"><i class="fa-solid fa-globe"></i></div>`;
+
+                el.innerHTML = `
+                ${faviconHtml}
+                <div class="history-item-info">
+                    <div class="history-item-title">${item.title}</div>
+                    <div class="history-item-url">${item.url}</div>
+                </div>
+                <span class="visit-count">${item.count}</span>
+                <button class="history-item-del" title="Sil"><i class="fa-solid fa-xmark"></i></button>
+            `;
+
+                el.addEventListener('click', (e) => {
+                    if (e.target.closest('.history-item-del')) return;
+                    // Ana renderer'a URL'yi gönder
+                    const { ipcRenderer } = require('electron');
+                    ipcRenderer.send('open-url-in-active-tab', item.url);
+                });
+
+                el.querySelector('.history-item-del').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    visitedTabs = visitedTabs.filter(t => t.url !== item.url);
+                    delete siteVisitCounts[item.url];
+                    // Ana renderer'a silme bildir
+                    const { ipcRenderer } = require('electron');
+                    ipcRenderer.send('history-delete-item', { url: item.url });
+                    render(document.getElementById('searchInput').value);
+                });
+
+                group.appendChild(el);
+            });
+
+            list.appendChild(group);
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            render(e.target.value);
+        });
+
+        document.getElementById('clearAllBtn').addEventListener('click', () => {
+            visitedTabs = [];
+            siteVisitCounts = {};
+            searchHistory = [];
+            const { ipcRenderer } = require('electron');
+            ipcRenderer.send('history-clear-all');
+            render();
+        });
+
+        load();
+        render();
+    </script>
+</body>
+
+</html>

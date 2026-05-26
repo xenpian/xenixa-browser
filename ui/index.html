@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xenixa Browser</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="browser-container">
+        <div class="tab-bar">
+            <img src="assets/logo.png" alt="Xenixa" class="tab-logo"
+                style="width:20px; margin-bottom:11px; margin-left:8px; margin-right:8px;">
+            <div class="popup-title" id="popupTitle" style="display: none;">Xenixa</div>
+            <div class="tab-strip">
+                <div class="tabs-scroll" id="tabsScroll">
+                    <div class="tabs-container" id="tabsContainer"></div>
+                </div>
+                <button class="new-tab-btn" id="newTabBtn" title="xenixa" type="button">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+            </div>
+            <div class="window-controls-spacer" aria-hidden="true"></div>
+        </div>
+
+        <div class="nav-bar">
+            <button class="nav-btn" id="backBtn" title="Geri">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <button class="nav-btn" id="forwardBtn" title="İleri">
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+            <button class="nav-btn" id="refreshBtn" title="Yenile">
+                <i class="fa-solid fa-rotate-right"></i>
+            </button>
+            <button class="nav-btn" id="homeBtn" title="Ana sayfa">
+                <i class="fa-solid fa-house"></i>
+            </button>
+            <div class="url-bar-container">
+                <div class="url-bar-wrap">
+                    <button class="proxy-shortcut-btn" id="croxyProxyBtn" title="CroxyProxy — Web Proxy">
+                        <img src="https://www.croxyproxy.com/favicon.ico" alt="CroxyProxy" class="proxy-shortcut-icon" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <i class="fa-solid fa-shield-halved" style="display:none;font-size:14px;color:#9aa0a6"></i>
+                    </button>
+                    <div class="warp-btn-wrap" id="warpBtnWrap">
+                        <button class="warp-btn" id="warpBtn" title="Cloudflare WARP">
+                            <span class="warp-icon" id="warpIcon">
+                                <svg width="35" height="35" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M608.2 592.4c3.1-10.8 1.9-20.7-3.3-28.1-4.8-6.7-12.9-10.6-22.6-11.1l-184.7-2.4c-1.1 0-2.2-.6-2.8-1.5-.6-.9-.7-2.1-.4-3.3.6-1.8 2.4-3.2 4.3-3.3l186.4-2.4c22.1-1 46.1-18.9 54.5-40.8l10.6-27.8c.5-1.2.6-2.4.3-3.6-12-54.3-60.5-94.8-118.4-94.8-53.4 0-98.7 34.5-114.9 82.4-10.5-7.8-23.9-12-38.3-10.6-25.7 2.5-46.2 23.1-48.8 48.8-.6 6.6-.1 13.1 1.4 19.1-41.9 1.2-75.3 35.4-75.3 77.6 0 3.7.3 7.5.8 11.2.3 1.8 1.8 3.1 3.6 3.1h340.9c1.9 0 3.8-1.4 4.3-3.3l2.4-9.2zM667 473.7c-1.6 0-3.4 0-5.1.2-1.2 0-2.2.9-2.7 2.1l-7.2 25c-3.1 10.8-2 20.7 3.3 28.1 4.8 6.7 12.9 10.6 22.7 11.1l39.3 2.4c1.2 0 2.3.6 2.8 1.5.6.9.7 2.3.5 3.3-.6 1.8-2.4 3.2-4.4 3.3l-41 2.4c-22.2 1-46 18.9-54.5 40.8l-3 7.6c-.6 1.5.5 3 2.1 3h140.8c1.6 0 3.1-1 3.6-2.7 2.4-8.7 3.7-17.9 3.7-27.3 0-55.5-45.3-100.8-101-100.8" fill="currentColor"/>
+                                </svg>
+                            </span>
+                        </button>
+                        <div class="warp-tooltip" id="warpTooltip">
+                            <div class="warp-tooltip-header">
+                                <span class="warp-tooltip-title">Cloudflare WARP</span>
+                                <span class="warp-status-dot" id="warpStatusDot"></span>
+                            </div>
+                            <div class="warp-tooltip-status" id="warpTooltipStatus">Durum kontrol ediliyor...</div>
+                            <button class="warp-toggle-btn" id="warpToggleBtn">Bağlan</button>
+                            <div class="warp-tooltip-note">warp-cli gerektirir</div>
+                        </div>
+                    </div>
+                    <div class="tor-btn-wrap" id="torBtnWrap">
+                        <button class="tor-btn" id="torBtn" title="Tor Ağı">
+                            <span class="tor-icon" id="torIcon">
+                                <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M24 4C12.95 4 4 12.95 4 24s8.95 20 20 20 20-8.95 20-20S35.05 4 24 4zm0 36c-8.82 0-16-7.18-16-16S15.18 8 24 8s16 7.18 16 16-7.18 16-16 16z" fill="currentColor"/>
+                                    <path d="M24 14c-5.52 0-10 4.48-10 10s4.48 10 10 10 10-4.48 10-10-4.48-10-10-10zm0 16c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z" fill="currentColor"/>
+                                    <circle cx="24" cy="24" r="3" fill="currentColor"/>
+                                </svg>
+                            </span>
+                        </button>
+                        <div class="tor-tooltip" id="torTooltip">
+                            <div class="tor-tooltip-header">
+                                <span class="tor-tooltip-title">Tor Ağı</span>
+                                <span class="tor-status-dot" id="torStatusDot"></span>
+                            </div>
+                            <div class="tor-tooltip-status" id="torTooltipStatus">Durum kontrol ediliyor...</div>
+                            <button class="tor-toggle-btn" id="torToggleBtn">Bağlan</button>
+                            <div class="tor-tooltip-note">tor.exe gerektirir</div>
+                        </div>
+                    </div>
+                    <div class="search-engine-picker" id="searchEnginePicker">
+                        <button class="search-engine-btn" id="searchEngineBtn" title="Arama motoru seç">
+                            <img id="searchEngineIcon" src="" alt="" class="search-engine-icon">
+                        </button>
+                        <div class="search-engine-dropdown" id="searchEngineDropdown">
+                            <div class="search-engine-item active" data-engine="google">
+                                <img src="https://www.google.com/favicon.ico" alt="Google" class="se-icon">
+                                <span>Google</span>
+                            </div>
+                            <div class="search-engine-item" data-engine="duckduckgo">
+                                <img src="https://duckduckgo.com/favicon.ico" alt="DuckDuckGo" class="se-icon">
+                                <span>DuckDuckGo</span>
+                            </div>
+                            <div class="search-engine-item" data-engine="bing">
+                                <img src="https://www.bing.com/favicon.ico" alt="Bing" class="se-icon">
+                                <span>Bing</span>
+                            </div>
+                            <div class="search-engine-item" data-engine="brave">
+                                <img src="https://www.google.com/s2/favicons?domain=search.brave.com&sz=32" alt="Brave Search" class="se-icon">
+                                <span>Brave Search</span>
+                            </div>
+                            <div class="search-engine-item" data-engine="ecosia">
+                                <img src="https://www.google.com/s2/favicons?domain=ecosia.org&sz=32" alt="Ecosia" class="se-icon">
+                                <span>Ecosia</span>
+                            </div>
+                            <div class="search-engine-item" data-engine="startpage">
+                                <img src="https://www.google.com/s2/favicons?domain=startpage.com&sz=32" alt="Startpage" class="se-icon">
+                                <span>Startpage</span>
+                            </div>
+                            <div class="search-engine-item" data-engine="yahoo">
+                                <img src="https://www.google.com/s2/favicons?domain=yahoo.com&sz=32" alt="Yahoo" class="se-icon">
+                                <span>Yahoo Search</span>
+                            </div>
+                            <div class="search-engine-item" data-engine="yandex">
+                                <img src="https://www.google.com/s2/favicons?domain=yandex.com&sz=32" alt="Yandex" class="se-icon">
+                                <span>Yandex</span>
+                            </div>
+                            <div class="search-engine-item" data-engine="perplexity">
+                                <img src="https://www.google.com/s2/favicons?domain=perplexity.ai&sz=32" alt="Perplexity" class="se-icon">
+                                <span>Perplexity AI</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="site-info-btn" id="siteInfoBtn" title="Site bilgisi" style="display:none">
+                        <i class="fa-solid fa-lock" id="siteInfoIcon"></i>
+                    </button>
+                    <input type="text" class="url-bar" id="urlBar" placeholder="Ara veya URL girin" autocomplete="off"
+                        spellcheck="false">
+                    <button class="bookmark-toggle-btn" id="bookmarkToggleBtn" title="Yer işareti ekle">
+                        <i class="fa-regular fa-bookmark" id="bookmarkIcon"></i>
+                    </button>
+                    <button class="bookmark-toggle-btn" id="pinToggleBtn" title="Ana sayfaya sabitle">
+                        <i class="fa-regular fa-star" id="pinIcon"></i>
+                    </button>
+                </div>
+                <div class="suggestions-box" id="suggestionsBox"></div>
+                <!-- Site Bilgisi Paneli -->
+                <div class="site-info-panel" id="siteInfoPanel">
+                    <!-- Sayfa 1: Ana -->
+                    <div class="site-info-page active" id="siteInfoPageMain">
+                        <div class="site-info-header">
+                            <span class="site-info-domain" id="siteInfoDomain">—</span>
+                            <button class="site-info-close" id="siteInfoClose"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div class="site-info-divider"></div>
+                        <div class="site-info-item" id="siteInfoSecurityRow">
+                            <div class="site-info-item-left">
+                                <i class="fa-solid fa-lock site-info-item-icon" id="siteInfoSecIcon"></i>
+                                <span class="site-info-item-label" id="siteInfoSecLabel">Bağlantı güvenli</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right site-info-item-arrow"></i>
+                        </div>
+                        <div class="site-info-item" id="siteInfoCookiesRow">
+                            <div class="site-info-item-left">
+                                <i class="fa-solid fa-cookie-bite site-info-item-icon"></i>
+                                <span class="site-info-item-label">Çerezler ve site verileri</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right site-info-item-arrow"></i>
+                        </div>
+                        <div class="site-info-item" id="siteInfoSettingsRow">
+                            <div class="site-info-item-left">
+                                <i class="fa-solid fa-gear site-info-item-icon"></i>
+                                <span class="site-info-item-label">Site ayarları</span>
+                            </div>
+                            <i class="fa-solid fa-arrow-up-right-from-square site-info-item-arrow" style="font-size:13px"></i>
+                        </div>
+                    </div>
+                    <!-- Sayfa 2: Güvenlik -->
+                    <div class="site-info-page" id="siteInfoPageSecurity">
+                        <div class="site-info-header">
+                            <button class="site-info-back" id="siteInfoBackSec"><i class="fa-solid fa-arrow-left"></i></button>
+                            <div class="site-info-header-text">
+                                <span class="site-info-page-title">Güvenlik</span>
+                                <span class="site-info-domain" id="siteInfoDomain2">—</span>
+                            </div>
+                            <button class="site-info-close" id="siteInfoClose2"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div class="site-info-divider"></div>
+                        <div class="site-info-security-body">
+                            <div class="site-info-sec-row">
+                                <i class="fa-solid fa-lock site-info-sec-icon" id="siteInfoSecIcon2"></i>
+                                <div class="site-info-sec-text">
+                                    <span class="site-info-sec-title" id="siteInfoSecTitle2">Bağlantı güvenli</span>
+                                    <span class="site-info-sec-desc" id="siteInfoSecDesc2">Bilgileriniz (örneğin şifreler veya kredi kartı numaraları), bu siteye gönderilirken gizli olur.</span>
+                                    <a class="site-info-sec-link" href="#" id="siteInfoSecMoreLink">Daha fazla bilgi</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="site-info-divider"></div>
+                        <div class="site-info-item">
+                            <div class="site-info-item-left">
+                                <i class="fa-regular fa-square-check site-info-item-icon"></i>
+                                <span class="site-info-item-label">Sertifika geçerli</span>
+                            </div>
+                            <i class="fa-solid fa-arrow-up-right-from-square site-info-item-arrow" style="font-size:13px" id="siteInfoCertBtn"></i>
+                        </div>
+                    </div>
+                    <!-- Sayfa 3: Çerezler -->
+                    <div class="site-info-page" id="siteInfoPageCookies">
+                        <div class="site-info-header">
+                            <button class="site-info-back" id="siteInfoBackCookies"><i class="fa-solid fa-arrow-left"></i></button>
+                            <div class="site-info-header-text">
+                                <span class="site-info-page-title">Çerezler ve site verileri</span>
+                                <span class="site-info-domain" id="siteInfoDomain3">—</span>
+                            </div>
+                            <button class="site-info-close" id="siteInfoClose3"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div class="site-info-divider"></div>
+                        <div class="site-info-item">
+                            <div class="site-info-item-left">
+                                <i class="fa-solid fa-database site-info-item-icon"></i>
+                                <div class="site-info-item-multi">
+                                    <span class="site-info-item-label">Cihaz üzerindeki site verilerini yönetin</span>
+                                    <span class="site-info-item-sub" id="siteInfoCookieCount">— çerez</span>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-arrow-up-right-from-square site-info-item-arrow" style="font-size:13px"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="nav-btn go-btn" id="goBtn" title="Git">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </button>
+            <div class="downloads-container" id="downloadsContainer">
+                <button class="nav-btn downloads-btn" id="downloadsBtn" title="İndirilenler">
+                    <i class="fa-solid fa-download"></i>
+                    <span class="downloads-badge" id="downloadsBadge"></span>
+                </button>
+                <div class="downloads-panel" id="downloadsPanel"></div>
+            </div>
+            <div class="menu-container">
+                <button class="nav-btn" id="menuBtn" title="Menü">
+                    <i class="fa-solid fa-ellipsis"></i>
+                </button>
+                <div class="menu-dropdown" id="menuDropdown"></div>
+            </div>
+        </div>
+        <div class="progress-bar" id="progressBar"></div>
+        <div class="quick-bookmarks" id="quickBookmarks"></div>
+
+        <div class="content-area">
+            <div class="webview-container" id="webviewContainer">
+                <div class="welcome-screen" id="welcomeScreen">
+                    <video class="welcome-bg-video" id="welcomeBgVideo" autoplay loop muted playsinline style="display:none"></video>
+                    <div class="top-sites" id="topSites"></div>
+                    <!-- Anasayfa ayarlar butonu -->
+                    <button class="welcome-settings-btn" id="welcomeSettingsBtn" title="Anasayfa ayarları">
+                        <i class="fa-solid fa-sliders"></i>
+                    </button>
+                    <div class="welcome-center">
+                        <img src="assets/logo.png" alt="Xenixa" class="welcome-logo" id="welcomeLogo" draggable="false">
+                        <div class="welcome-search-wrap" id="welcomeSearchWrap">
+                            <div class="welcome-search">
+                                
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="welcomeSearchInput" placeholder="Ara veya URL girin"
+                                    autocomplete="off" spellcheck="false">
+                            </div>
+                            <div class="pinned-sites" id="pinnedSites"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sağ Tıklama Context Menüsü Backdrop -->
+    <div class="context-menu-backdrop" id="contextMenuBackdrop"></div>
+    <!-- Sağ Tıklama Context Menüsü -->
+    <div class="context-menu" id="contextMenu"></div>
+    <!-- Tab Sağ Tıklama Menüsü -->
+    <div class="tab-context-menu" id="tabContextMenu"></div>
+    <!-- Downloads Panel Backdrop -->
+    <div class="downloads-backdrop" id="downloadsBackdrop"></div>
+    <!-- Menu Dropdown Backdrop -->
+    <div class="menu-backdrop" id="menuBackdrop"></div>
+
+    <!-- Anasayfa Ayarları Modal -->
+    <div class="welcome-modal-backdrop" id="welcomeModalBackdrop"></div>
+    <div class="welcome-modal" id="welcomeModal">
+        <div class="welcome-modal-header">
+            <span class="welcome-modal-title">Anasayfayı Özelleştir</span>
+            <button class="welcome-modal-close" id="welcomeModalClose"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="welcome-modal-layout">
+            <!-- Sol sidebar -->
+            <nav class="welcome-modal-nav">
+                <div class="wm-nav-item active" data-tab="background">
+                    <i class="fa-regular fa-image"></i>
+                    <span>Arka Plan</span>
+                </div>
+                <div class="wm-nav-item" data-tab="shortcuts">
+                    <i class="fa-solid fa-table-cells-large"></i>
+                    <span>Kısayollar</span>
+                </div>
+                <div class="wm-nav-item" data-tab="brand">
+                    <i class="fa-solid fa-pen-nib"></i>
+                    <span>Marka</span>
+                </div>
+            </nav>
+            <!-- Sağ içerik -->
+            <div class="welcome-modal-content">
+                <!-- Arka Plan sekmesi -->
+                <div class="wm-tab active" id="wm-tab-background">
+                    <div class="wm-toggle-row">
+                        <span class="wm-toggle-label">Arka plan resmini göster</span>
+                        <label class="welcome-modal-toggle">
+                            <input type="checkbox" id="bgShowToggle" checked>
+                            <span class="welcome-modal-toggle-track"></span>
+                        </label>
+                    </div>
+                    <!-- Resimler -->
+                    <span class="wm-section-label">Resimler</span>
+                    <div class="wm-bg-grid" id="wmBgGrid">
+                        <!-- Yükle kartı — her zaman ilk -->
+                        <div class="wm-bg-card wm-bg-upload" id="wmUploadCard">
+                            <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                            <span>Resim yükle</span>
+                        </div>
+                        <!-- Video yükleme kartı -->
+                        <div class="wm-bg-card wm-bg-upload" id="wmUploadVideoCard">
+                            <i class="fa-solid fa-film"></i>
+                            <span>Video yükle</span>
+                        </div>
+                        <!-- Yüklenen resimler JS ile buraya eklenir -->
+                    </div>
+                    <!-- Gradyanlar -->
+                    <span class="wm-section-label" style="margin-top:14px">Gradyanlar</span>
+                    <div class="wm-bg-grid wm-gradient-grid">
+                        <div class="wm-bg-card wm-bg-gradient" data-gradient="linear-gradient(135deg,#a855f7,#ec4899)">
+                            <div class="wm-bg-gradient-preview" style="background:linear-gradient(135deg,#a855f7,#ec4899)"></div>
+                            <div class="wm-bg-check" style="display:none"><i class="fa-solid fa-check"></i></div>
+                        </div>
+                        <div class="wm-bg-card wm-bg-gradient" data-gradient="linear-gradient(135deg,#0ea5e9,#6366f1)">
+                            <div class="wm-bg-gradient-preview" style="background:linear-gradient(135deg,#0ea5e9,#6366f1)"></div>
+                            <div class="wm-bg-check" style="display:none"><i class="fa-solid fa-check"></i></div>
+                        </div>
+                        <div class="wm-bg-card wm-bg-gradient" data-gradient="linear-gradient(135deg,#10b981,#0ea5e9)">
+                            <div class="wm-bg-gradient-preview" style="background:linear-gradient(135deg,#10b981,#0ea5e9)"></div>
+                            <div class="wm-bg-check" style="display:none"><i class="fa-solid fa-check"></i></div>
+                        </div>
+                        <div class="wm-bg-card wm-bg-gradient" data-gradient="linear-gradient(135deg,#f59e0b,#ef4444)">
+                            <div class="wm-bg-gradient-preview" style="background:linear-gradient(135deg,#f59e0b,#ef4444)"></div>
+                            <div class="wm-bg-check" style="display:none"><i class="fa-solid fa-check"></i></div>
+                        </div>
+                        <div class="wm-bg-card wm-bg-gradient" data-gradient="linear-gradient(135deg,#1e3a5f,#0f172a)">
+                            <div class="wm-bg-gradient-preview" style="background:linear-gradient(135deg,#1e3a5f,#0f172a)"></div>
+                            <div class="wm-bg-check" style="display:none"><i class="fa-solid fa-check"></i></div>
+                        </div>
+                        <div class="wm-bg-card wm-bg-gradient" data-gradient="linear-gradient(135deg,#7c3aed,#1e1b4b)">
+                            <div class="wm-bg-gradient-preview" style="background:linear-gradient(135deg,#7c3aed,#1e1b4b)"></div>
+                            <div class="wm-bg-check" style="display:none"><i class="fa-solid fa-check"></i></div>
+                        </div>
+                        <div class="wm-bg-card wm-bg-gradient" data-gradient="linear-gradient(135deg,#f97316,#be185d)">
+                            <div class="wm-bg-gradient-preview" style="background:linear-gradient(135deg,#f97316,#be185d)"></div>
+                            <div class="wm-bg-check" style="display:none"><i class="fa-solid fa-check"></i></div>
+                        </div>
+                        <div class="wm-bg-card wm-bg-gradient" data-gradient="linear-gradient(135deg,#14b8a6,#8b5cf6)">
+                            <div class="wm-bg-gradient-preview" style="background:linear-gradient(135deg,#14b8a6,#8b5cf6)"></div>
+                            <div class="wm-bg-check" style="display:none"><i class="fa-solid fa-check"></i></div>
+                        </div>
+                    </div>
+                    <!-- Düz renkler + özel renk -->
+                    <span class="wm-section-label" style="margin-top:14px">Düz Renkler</span>
+                    <div class="wm-solid-row">
+                        <div class="wm-color-swatch selected-swatch" data-color="#1a1a1a" style="background:#1a1a1a">
+                            <div class="wm-bg-check" style="display:none"><i class="fa-solid fa-check"></i></div>
+                        </div>
+                        <div class="wm-color-swatch" data-color="#0f172a" style="background:#0f172a">
+                            <div class="wm-bg-check" style="display:none"><i class="fa-solid fa-check"></i></div>
+                        </div>
+                        <div class="wm-color-swatch" data-color="#1e1b4b" style="background:#1e1b4b">
+                            <div class="wm-bg-check" style="display:none"><i class="fa-solid fa-check"></i></div>
+                        </div>
+                        <div class="wm-color-swatch" data-color="#14532d" style="background:#14532d">
+                            <div class="wm-bg-check" style="display:none"><i class="fa-solid fa-check"></i></div>
+                        </div>
+                        <div class="wm-color-swatch" data-color="#7f1d1d" style="background:#7f1d1d">
+                            <div class="wm-bg-check" style="display:none"><i class="fa-solid fa-check"></i></div>
+                        </div>
+                        <div class="wm-color-swatch" data-color="#1e3a5f" style="background:#1e3a5f">
+                            <div class="wm-bg-check" style="display:none"><i class="fa-solid fa-check"></i></div>
+                        </div>
+                        <!-- Özel renk swatch -->
+                        <div class="wm-color-swatch wm-custom-swatch" id="wmCustomSwatch" title="Özel renk seç">
+                            <i class="fa-solid fa-plus"></i>
+                            <input type="color" id="wmCustomColor" value="#2c2c2c" tabindex="-1">
+                        </div>
+                    </div>
+                </div>
+                <!-- Kısayollar sekmesi -->
+                <div class="wm-tab" id="wm-tab-shortcuts">
+                    <div class="wm-toggle-row">
+                        <div>
+                            <div class="wm-toggle-label">En çok ziyaret edilen siteler</div>
+                            <div class="wm-toggle-sub">Sayfanın üstünde göster</div>
+                        </div>
+                        <label class="welcome-modal-toggle">
+                            <input type="checkbox" id="topSitesToggle" checked>
+                            <span class="welcome-modal-toggle-track"></span>
+                        </label>
+                    </div>
+                    <div class="wm-toggle-row">
+                        <div>
+                            <div class="wm-toggle-label">Logo</div>
+                            <div class="wm-toggle-sub">Xenixa logosunu göster</div>
+                        </div>
+                        <label class="welcome-modal-toggle">
+                            <input type="checkbox" id="logoShowToggle" checked>
+                            <span class="welcome-modal-toggle-track"></span>
+                        </label>
+                    </div>
+                    <div class="wm-toggle-row">
+                        <div>
+                            <div class="wm-toggle-label">Arama kutusu</div>
+                            <div class="wm-toggle-sub">Arama / URL girişini göster</div>
+                        </div>
+                        <label class="welcome-modal-toggle">
+                            <input type="checkbox" id="searchBoxShowToggle" checked>
+                            <span class="welcome-modal-toggle-track"></span>
+                        </label>
+                    </div>
+                    <div class="wm-toggle-row" id="videoSoundRow" style="display:none">
+                        <div>
+                            <div class="wm-toggle-label">Video sesi</div>
+                            <div class="wm-toggle-sub">Arka plan videosunun sesini aç</div>
+                        </div>
+                        <label class="welcome-modal-toggle">
+                            <input type="checkbox" id="bgVideoSoundToggle">
+                            <span class="welcome-modal-toggle-track"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Marka sekmesi -->
+                <div class="wm-tab" id="wm-tab-brand">
+                    <!-- Logo -->
+                    <span class="wm-section-label">Uygulama Logosu</span>
+                    <div class="wm-brand-logo-row">
+                        <div class="wm-brand-logo-preview" id="brandLogoPreview">
+                            <img id="brandLogoPreviewImg" src="" alt="Logo" style="display:none">
+                            <i class="fa-solid fa-image" id="brandLogoPreviewIcon"></i>
+                        </div>
+                        <div class="wm-brand-logo-actions">
+                            <button class="wm-brand-upload-btn" id="brandLogoUploadBtn">
+                                <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                                Görsel Yükle
+                            </button>
+                            <button class="wm-brand-reset-btn" id="brandLogoResetBtn">
+                                <i class="fa-solid fa-rotate-left"></i>
+                                Varsayılana Dön
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Uygulama Adı -->
+                    <span class="wm-section-label" style="margin-top:20px">Uygulama Adı</span>
+                    <div class="wm-brand-name-row">
+                        <input type="text" class="wm-brand-name-input" id="brandNameInput"
+                            placeholder="Xenixa" autocomplete="off" spellcheck="false">
+                        <button class="wm-brand-upload-btn" id="brandNameSaveBtn">
+                            <i class="fa-solid fa-check"></i>
+                            Kaydet
+                        </button>
+                    </div>
+                    <div class="wm-brand-name-hint">Sekme başlıkları, pencere başlığı ve anasayfa adı değişir.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Gizli dosya inputları -->
+    <input type="file" id="bgFileInput" accept="image/*" style="display:none">
+    <input type="file" id="bgVideoInput" accept="video/mp4,video/webm" style="display:none">
+    <input type="file" id="brandLogoInput" accept="image/*" style="display:none">
+    <!-- Find Bar (Ctrl+F) -->
+    <div class="find-bar" id="findBar">
+        <i class="fa-solid fa-magnifying-glass find-bar-icon"></i>
+        <input type="text" id="findInput" placeholder="Sayfada ara..." autocomplete="off" spellcheck="false">
+        <span class="find-bar-count" id="findCount"></span>
+        <button class="find-bar-btn" id="findPrev" title="Önceki (Shift+Enter)"><i class="fa-solid fa-chevron-up"></i></button>
+        <button class="find-bar-btn" id="findNext" title="Sonraki (Enter)"><i class="fa-solid fa-chevron-down"></i></button>
+        <button class="find-bar-btn find-bar-close" id="findClose" title="Kapat (Esc)"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="zoom-indicator" id="zoomIndicator">
+        <i class="fa-solid fa-magnifying-glass-plus"></i>
+        <span id="zoomLevel">100%</span>
+    </div>
+
+    <!-- ── İzin İsteği Baloncuğu Backdrop ───────────────────────────────── -->
+    <div class="permission-bubble-backdrop" id="permissionBubbleBackdrop"></div>
+    <!-- ── İzin İsteği Baloncuğu (Permission Bubble) ─────────────────────── -->
+    <div class="permission-bubble" id="permissionBubble">
+        <div class="permission-bubble-icon" id="permissionBubbleIcon">
+            <i class="fa-solid fa-bell" id="permissionBubbleIco"></i>
+        </div>
+        <div class="permission-bubble-body">
+            <div class="permission-bubble-site" id="permissionBubbleSite">site.com</div>
+            <div class="permission-bubble-msg" id="permissionBubbleMsg">bildirim göndermek istiyor</div>
+        </div>
+        <div class="permission-bubble-actions">
+            <button class="permission-allow-btn" id="permissionAllowBtn">İzin Ver</button>
+            <button class="permission-deny-btn" id="permissionDenyBtn">Reddet</button>
+        </div>
+    </div>
+
+    <!-- ── Özel Diyalog (Alert / Confirm / Prompt) ────────────────────────── -->
+    <div class="custom-dialog-backdrop" id="customDialogBackdrop"></div>
+    <div class="custom-dialog" id="customDialog">
+        <button class="custom-dialog-close" id="customDialogClose" title="Kapat">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="custom-dialog-icon-wrap" id="customDialogIconWrap">
+            <i class="fa-solid fa-circle-info" id="customDialogIcon"></i>
+        </div>
+        <div class="custom-dialog-site" id="customDialogSite"></div>
+        <div class="custom-dialog-message" id="customDialogMessage"></div>
+        <input type="text" class="custom-dialog-input" id="customDialogInput" autocomplete="off" spellcheck="false" style="display:none">
+        <div class="custom-dialog-actions" id="customDialogActions">
+            <button class="custom-dialog-cancel" id="customDialogCancel" style="display:none">İptal</button>
+            <button class="custom-dialog-ok" id="customDialogOk">Tamam</button>
+        </div>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Xenixa Test Page</title>
+    <style>
+        body {
+            background: #111;
+            color: #eee;
+            font-family: system-ui, sans-serif;
+            padding: 40px;
+            text-align: center;
+        }
+        button {
+            background: #7c3aed;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        button:hover {
+            background: #6d28d9;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <h1>Xenixa Test Page</h1>
+    <p>Test the new custom dialogs, permissions, and popups below.</p>
+    
+    <div>
+        <button onclick="alert('Bu bir Xenixa Alert testidir!')">Alert Test</button>
+        <button onclick="const r = confirm('Devam etmek istiyor musunuz?'); alert('Seçiminiz: ' + r)">Confirm Test</button>
+        <button onclick="const name = prompt('Lütfen adınızı girin:', 'Misafir'); alert('Merhaba ' + name)">Prompt Test</button>
+    </div>
+
+    <div style="margin-top: 30px;">
+        <button onclick="navigator.geolocation.getCurrentPosition(s => alert('Konum alındı'), e => alert('Hata: ' + e.message))">Geolocation Permission Test</button>
+        <button onclick="Notification.requestPermission().then(r => alert('Bildirim izni: ' + r))">Notification Permission Test</button>
+    </div>
+
+    <div style="margin-top: 30px;">
+        <button onclick="window.open('https://accounts.google.com', '_blank', 'width=500,height=600')">Google Login Popup (window.open)</button>
+        <button onclick="window.open('https://github.com', '_blank')">New Tab (window.open)</button>
+    </div>
+</body>
+</html>
