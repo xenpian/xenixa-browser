@@ -1,5 +1,4 @@
 ```python
-# Proje için İngilizceye çevrilmiş README.md dosyasını oluşturuyoruz.
 
 readme_content = """# Xenixa Browser
 
