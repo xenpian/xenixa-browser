@@ -3988,7 +3988,7 @@ ipcRenderer.on('language-changed', (event, lang) => {
     
     // Webview'ları bilgilendir veya yenile (özel sayfalar için)
     tabs.forEach(t => {
-        if (t.webview && !t.webview.isDestroyed() && isSpecialPage(t.url)) {
+        if (t.webview && document.body.contains(t.webview) && isSpecialPage(t.url)) {
             try {
                 t.webview.reload();
             } catch (e) {}
@@ -4708,7 +4708,7 @@ ipcRenderer.on('suggest-save-password', (event, entry) => {
 // IPC: Şifreler güncellendiğinde tüm webview'lara yayınla
 ipcRenderer.on('passwords-updated', () => {
     tabs.forEach(t => {
-        if (t.webview && !t.webview.isDestroyed()) {
+        if (t.webview && document.body.contains(t.webview)) {
             try { t.webview.send('passwords-updated'); } catch(_e) {}
         }
     });
