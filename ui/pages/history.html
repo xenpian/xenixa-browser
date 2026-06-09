@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <title>Geçmiş</title>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -47,7 +48,7 @@
         }
 
         .page-title i {
-            color: #838383;
+            color: gray;
             font-size: 26px;
         }
 
@@ -73,15 +74,15 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            background: #202124;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: #3b3b3b;
+            border: 1px solid #444444;
             border-radius: 12px;
             padding: 10px 16px;
             margin-bottom: 24px;
         }
 
         .search-bar i {
-            color: #9aa0a6;
+            color: gray;
             font-size: 16px;
         }
 
@@ -95,7 +96,7 @@
         }
 
         .search-bar input::placeholder {
-            color: #9aa0a6;
+            color: gray;
         }
 
         .history-group {
@@ -105,7 +106,7 @@
         .group-label {
             font-size: 11px;
             font-weight: 600;
-            color: #9aa0a6;
+            color: gray;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-bottom: 8px;
@@ -137,7 +138,7 @@
             width: 16px;
             height: 16px;
             font-size: 14px;
-            color: #9aa0a6;
+            color: gray;
             flex-shrink: 0;
             display: flex;
             align-items: center;
@@ -159,7 +160,7 @@
 
         .history-item-url {
             font-size: 11px;
-            color: #9aa0a6;
+            color: gray;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -168,7 +169,7 @@
 
         .history-item-time {
             font-size: 11px;
-            color: #5f6368;
+            color: gray;
             flex-shrink: 0;
         }
 
@@ -177,7 +178,7 @@
             height: 24px;
             border: none;
             background: transparent;
-            color: #5f6368;
+            color: gray;
             cursor: pointer;
             border-radius: 6px;
             font-size: 14px;
@@ -200,7 +201,7 @@
         .empty-state {
             text-align: center;
             padding: 60px 0;
-            color: #5f6368;
+            color: gray;
         }
 
         .empty-state i {
@@ -230,42 +231,72 @@
         <div class="page-header">
             <div class="page-title">
                 <i class="fa-solid fa-clock-rotate-left"></i>
-                Geçmiş
+                <span data-translate="history">Geçmiş</span>
             </div>
             <button class="clear-btn" id="clearAllBtn">
-                <i class="fa-solid fa-trash-can"></i> Tümünü Temizle
+                <i class="fa-solid fa-trash-can"></i> <span data-translate="clear_all_history">Tümünü Temizle</span>
             </button>
         </div>
         <div class="search-bar">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="searchInput" placeholder="Geçmişte ara...">
+            <input type="text" id="searchInput" data-translate-placeholder="history_search_placeholder"
+                placeholder="Geçmişte ara...">
         </div>
         <div id="historyList"></div>
     </div>
+    <script src="../translations.js"></script>
     <script>
         let visitedTabs = [];
         let siteVisitCounts = {};
         let searchHistory = [];
 
         function load() {
-            // Önce URL'den veriyi oku (ana renderer'dan geçirildi)
             try {
-                const params = new URLSearchParams(window.location.search);
-                const raw = params.get('data');
-                if (raw) {
-                    const data = JSON.parse(raw);
-                    visitedTabs = data.visitedTabs || [];
-                    siteVisitCounts = data.siteVisitCounts || {};
-                    searchHistory = data.searchHistory || [];
-                    return;
+                const storedVisited = localStorage.getItem('xenixa_visited_tabs');
+                if (storedVisited) {
+                    visitedTabs = JSON.parse(storedVisited);
                 }
-            } catch (e) { }
-            // Fallback: executeJavaScript ile inject edilmiş veri
-            if (window.__xenixaData) {
-                visitedTabs = window.__xenixaData.visitedTabs || [];
-                siteVisitCounts = window.__xenixaData.siteVisitCounts || {};
-                searchHistory = window.__xenixaData.searchHistory || [];
+            } catch (e) {
+                console.error("Ziyaret edilen sekmeler geçmişi yüklenemedi:", e);
             }
+            try {
+                const storedCounts = localStorage.getItem('xenixa_visit_counts');
+                if (storedCounts) {
+                    siteVisitCounts = JSON.parse(storedCounts);
+                }
+            } catch (e) {
+                console.error("Ziyaret sayaçları yüklenemedi:", e);
+            }
+            try {
+                const storedHistory = localStorage.getItem('xenixa_history');
+                if (storedHistory) {
+                    searchHistory = JSON.parse(storedHistory);
+                }
+            } catch (e) {
+                console.error("Arama geçmişi yüklenemedi:", e);
+            }
+        }
+
+        function getDateGroupLabel(timestamp) {
+            const date = new Date(timestamp);
+            const today = new Date();
+            const yesterday = new Date();
+            yesterday.setDate(today.getDate() - 1);
+
+            if (date.toDateString() === today.toDateString()) {
+                return window.XenixaI18n.t('today');
+            } else if (date.toDateString() === yesterday.toDateString()) {
+                return window.XenixaI18n.t('yesterday');
+            } else {
+                const locale = window.XenixaI18n.currentLang === 'tr' ? 'tr-TR' : window.XenixaI18n.currentLang === 'ru' ? 'ru-RU' : 'en-US';
+                return date.toLocaleDateString(locale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         function render(filter = '') {
@@ -277,6 +308,7 @@
                 url: t.url,
                 favicon: t.favicon || null,
                 count: siteVisitCounts[t.url] || 1,
+                date: t.date || Date.now(),
             }));
 
             if (filter) {
@@ -285,52 +317,70 @@
             }
 
             if (items.length === 0) {
-                list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-clock-rotate-left"></i><p>Geçmiş bulunamadı</p></div>`;
+                list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-clock-rotate-left"></i><p>${window.XenixaI18n.t('no_history')}</p></div>`;
                 return;
             }
 
-            const group = document.createElement('div');
-            group.className = 'history-group';
-
-            items.forEach((item) => {
-                const el = document.createElement('div');
-                el.className = 'history-item';
-
-                const faviconHtml = item.favicon
-                    ? `<img src="${item.favicon}" alt="" onerror="this.style.display='none'">`
-                    : `<div class="history-item-icon"><i class="fa-solid fa-globe"></i></div>`;
-
-                el.innerHTML = `
-                ${faviconHtml}
-                <div class="history-item-info">
-                    <div class="history-item-title">${item.title}</div>
-                    <div class="history-item-url">${item.url}</div>
-                </div>
-                <span class="visit-count">${item.count}</span>
-                <button class="history-item-del" title="Sil"><i class="fa-solid fa-xmark"></i></button>
-            `;
-
-                el.addEventListener('click', (e) => {
-                    if (e.target.closest('.history-item-del')) return;
-                    // Ana renderer'a URL'yi gönder
-                    const { ipcRenderer } = require('electron');
-                    ipcRenderer.send('open-url-in-active-tab', item.url);
-                });
-
-                el.querySelector('.history-item-del').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    visitedTabs = visitedTabs.filter(t => t.url !== item.url);
-                    delete siteVisitCounts[item.url];
-                    // Ana renderer'a silme bildir
-                    const { ipcRenderer } = require('electron');
-                    ipcRenderer.send('history-delete-item', { url: item.url });
-                    render(document.getElementById('searchInput').value);
-                });
-
-                group.appendChild(el);
+            // Tarihe göre gruplandır
+            const groups = {};
+            items.forEach(item => {
+                const label = getDateGroupLabel(item.date);
+                if (!groups[label]) groups[label] = [];
+                groups[label].push(item);
             });
 
-            list.appendChild(group);
+            Object.entries(groups).forEach(([label, groupItems]) => {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'history-group';
+
+                const labelDiv = document.createElement('div');
+                labelDiv.className = 'group-label';
+                labelDiv.textContent = label;
+                groupDiv.appendChild(labelDiv);
+
+                groupItems.forEach(item => {
+                    const el = document.createElement('div');
+                    el.className = 'history-item';
+
+                    const faviconHtml = item.favicon
+                        ? `<img src="${item.favicon}" alt="" onerror="this.style.display='none'">`
+                        : `<div class="history-item-icon"><i class="fa-solid fa-globe"></i></div>`;
+
+                    const locale = window.XenixaI18n.currentLang === 'tr' ? 'tr-TR' : window.XenixaI18n.currentLang === 'ru' ? 'ru-RU' : 'en-US';
+                    const itemTime = new Date(item.date).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+                    const visitsText = window.XenixaI18n.t('visits_count', { count: item.count });
+
+                    el.innerHTML = `
+                        ${faviconHtml}
+                        <div class="history-item-info">
+                            <div class="history-item-title">${escapeHtml(item.title)}</div>
+                            <div class="history-item-url">${escapeHtml(item.url)}</div>
+                        </div>
+                        <span class="visit-count" style="margin-right: 8px;">${visitsText}</span>
+                        <span class="history-item-time">${itemTime}</span>
+                        <button class="history-item-del" title="${window.XenixaI18n.t('delete')}"><i class="fa-solid fa-xmark"></i></button>
+                    `;
+
+                    el.addEventListener('click', (e) => {
+                        if (e.target.closest('.history-item-del')) return;
+                        const { ipcRenderer } = require('electron');
+                        ipcRenderer.send('open-url-in-active-tab', item.url);
+                    });
+
+                    el.querySelector('.history-item-del').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        visitedTabs = visitedTabs.filter(t => t.url !== item.url);
+                        delete siteVisitCounts[item.url];
+                        const { ipcRenderer } = require('electron');
+                        ipcRenderer.send('history-delete-item', { url: item.url });
+                        render(document.getElementById('searchInput').value);
+                    });
+
+                    groupDiv.appendChild(el);
+                });
+
+                list.appendChild(groupDiv);
+            });
         }
 
         document.getElementById('searchInput').addEventListener('input', (e) => {

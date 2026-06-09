@@ -105,10 +105,10 @@ body {
 .tab-bar {
     background: #242424;
     display: flex;
-    margin-top: 3px;
+    margin-top: 0px;
     margin-bottom: 3px;
-    height: 40px;
-    align-items: flex-end;
+    height: 43px;
+    align-items: stretch;
     padding: 0 0 0 2px;
     -webkit-app-region: drag;
 }
@@ -117,7 +117,7 @@ body {
     flex: 1;
     min-width: 0;
     display: flex;
-    align-items: flex-end;
+    align-items: stretch;
     overflow: hidden;
 }
 
@@ -125,23 +125,24 @@ body {
     flex: 1;
     min-width: 0;
     display: flex;
-    align-items: flex-end;
+    align-items: stretch;
     overflow: hidden;
 }
 
 .tabs-row {
     display: flex;
-    align-items: flex-end;
-    height: 40px;
+    align-items: stretch;
+    height: 100%;
     flex: 1;
     min-width: 0;
 }
 
 .tabs-container {
     display: flex;
-    align-items: flex-end;
+    align-items: stretch;
     flex: none;
     min-width: 0;
+    height: 100%;
 }
 
 .window-controls-spacer {
@@ -152,26 +153,28 @@ body {
 }
 
 .tab {
-    background: transparent;
+    background-color: transparent;
     border: none;
-    color: #9aa0a6;
+    color: gray;
     flex: none;
     min-width: 0;
-    height: 40px;
+    height: 100%;
     padding-left: 10px;
     padding-right: 10px;
     cursor: pointer;
     margin-right: 2px;
     margin-left: 2px;
-    border-radius: 9px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     gap: 6px;
     position: relative;
     font-size: 12px;
     -webkit-app-region: no-drag;
-    transition: background 0.15s ease, color 0.15s ease, opacity 0.18s ease, transform 0.18s ease;
+    transition: background-color 0.15s ease, color 0.15s ease, opacity 0.18s ease, transform 0.18s ease;
     overflow: hidden;
+    border-top: 3.5px solid transparent;
+    background-clip: padding-box;
 }
 
 .tab::before {
@@ -205,12 +208,12 @@ body {
 }
 
 .tab:hover:not(.active) {
-    background: rgba(255, 255, 255, 0.06);
+    background-color: rgba(255, 255, 255, 0.06);
     color: #e8eaed;
 }
 
 .tab.active {
-    background: #2c2c2c;
+    background-color: #2c2c2c;
     color: #e8eaed;
     z-index: 1;
 }
@@ -299,7 +302,7 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(0,0,0,0.4);
+    background: rgba(0, 0, 0, 0.4);
 }
 
 .tab.tab-very-narrow.active .tab-favicon,
@@ -338,6 +341,7 @@ body {
 }
 
 .new-tab-btn {
+    align-self: flex-end;
     width: 28px;
     height: 28px;
     margin-bottom: 6px;
@@ -345,7 +349,7 @@ body {
     margin-right: 4px;
     border: none;
     background: rgba(128, 128, 128, 0.123);
-    color: #9aa0a6;
+    color: gray;
     cursor: pointer;
     border-radius: 50%;
     font-size: 12px;
@@ -433,7 +437,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    color: #9aa0a6;
+    color: gray;
     flex-shrink: 0;
 }
 
@@ -453,7 +457,7 @@ body {
 }
 
 .security-icon.info {
-    color: #9aa0a6;
+    color: gray;
 }
 
 .url-bar {
@@ -469,7 +473,7 @@ body {
 .bookmark-toggle-btn {
     background: none;
     border: none;
-    color: #9aa0a6;
+    color: gray;
     cursor: pointer;
     padding: 0 8px;
     display: flex;
@@ -498,7 +502,7 @@ body {
 
 
 .url-bar::placeholder {
-    color: #9aa0a6;
+    color: gray;
 }
 
 
@@ -532,7 +536,7 @@ body {
 /* Tab Drag & Drop Styles */
 .tab.dragging {
     opacity: 0.4;
-    background: rgba(255, 255, 255, 0.08) !important;
+    background-color: rgba(255, 255, 255, 0.08) !important;
 }
 
 /* Tab kapanma animasyonu */
@@ -580,6 +584,36 @@ body {
     width: 100%;
     max-width: 584px;
     padding: 0 24px;
+}
+
+.welcome-adblock-stats {
+    position: absolute;
+    bottom: 24px;
+    left: 24px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 0;
+    padding: 16px 32px;
+    background: rgba(213, 199, 255, 0.08);
+    border: 1px solid rgba(209, 194, 255, 0.15);
+    border-radius: 16px;
+    color: #c4b5fd;
+    font-size: 13px;
+    font-weight: 500;
+    width: fit-content;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    user-select: none;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.welcome-adblock-stats i {
+    font-size: 14px;
+    color: #a78bfa;
 }
 
 .welcome-logo {
@@ -731,9 +765,9 @@ body {
 }
 
 .welcome-search input::placeholder {
-    color: #9aa0a6;
+    color: gray;
     opacity: 1;
-    -webkit-text-fill-color: #9aa0a6;
+    -webkit-text-fill-color: gray;
 }
 
 /* Scrollbar */
@@ -810,7 +844,7 @@ body {
 
 .suggestions-item i {
     font-size: 14px;
-    color: #9aa0a6;
+    color: gray;
     flex-shrink: 0;
 }
 
@@ -905,7 +939,7 @@ body {
 
 .menu-item i {
     font-size: 14px;
-    color: #9aa0a6;
+    color: gray;
     flex-shrink: 0;
 }
 
@@ -1092,7 +1126,7 @@ body {
 
 .context-menu-item i {
     font-size: 15px;
-    color: #9aa0a6;
+    color: gray;
     flex-shrink: 0;
     width: 16px;
     text-align: center;
@@ -1355,14 +1389,14 @@ body {
 .downloads-panel-title {
     font-size: 12px;
     font-weight: 600;
-    color: #9aa0a6;
+    color: gray;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .downloads-clear-btn {
     font-size: 11px;
-    color: #9aa0a6;
+    color: gray;
     background: none;
     border: none;
     cursor: pointer;
@@ -1436,7 +1470,7 @@ body {
 
 .download-item-meta {
     font-size: 11px;
-    color: #9aa0a6;
+    color: gray;
     margin-top: 2px;
 }
 
@@ -1451,7 +1485,7 @@ body {
     height: 26px;
     border: none;
     background: transparent;
-    color: #9aa0a6;
+    color: gray;
     cursor: pointer;
     border-radius: 6px;
     font-size: 14px;
@@ -1535,19 +1569,17 @@ body {
     cursor: grabbing;
 }
 
-/* ── Tab Sağ Tıklama Menüsü ─────────────────────────────────────────────── */
 .tab-context-menu {
     position: fixed;
-    background: #1e1f22;
+    background: #2c2c2c;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 10px;
-    padding: 5px 0;
+    padding: 6px 0;
     min-width: 240px;
     z-index: 99999;
     display: none;
     user-select: none;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-    animation: contextMenuIn 0.1s cubic-bezier(0.2, 0, 0, 1);
+    animation: contextMenuIn 0.12s cubic-bezier(0.2, 0, 0, 1);
 }
 
 .tab-context-menu.visible {
@@ -1558,20 +1590,21 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 7px 14px;
+    padding: 8px 14px;
     color: #e8eaed;
     font-size: 13px;
     cursor: pointer;
-    transition: background 0.1s;
+    transition: background 0.1s ease;
     gap: 12px;
 }
 
 .tab-context-item:hover {
-    background: rgba(255, 255, 255, 0.07);
+    background: rgba(167, 139, 250, 0.12);
+    color: #fff;
 }
 
 .tab-context-item.disabled {
-    opacity: 0.35;
+    opacity: 0.4;
     pointer-events: none;
 }
 
@@ -1581,7 +1614,7 @@ body {
 
 .tab-context-item-shortcut {
     font-size: 11px;
-    color: #5f6368;
+    color: gray;
     flex-shrink: 0;
 }
 
@@ -1615,7 +1648,7 @@ body {
 
 .find-bar-icon {
     font-size: 15px;
-    color: #9aa0a6;
+    color: gray;
     flex-shrink: 0;
 }
 
@@ -1635,7 +1668,7 @@ body {
 
 .find-bar-count {
     font-size: 11px;
-    color: #9aa0a6;
+    color: gray;
     flex-shrink: 0;
     min-width: 48px;
     text-align: center;
@@ -1650,7 +1683,7 @@ body {
     height: 26px;
     border: none;
     background: transparent;
-    color: #9aa0a6;
+    color: gray;
     cursor: pointer;
     border-radius: 6px;
     font-size: 16px;
@@ -1695,7 +1728,7 @@ body {
     justify-content: center;
     padding: 0;
     transition: background 0.15s;
-    color: #9aa0a6;
+    color: gray;
     position: relative;
 }
 
@@ -1767,7 +1800,7 @@ body {
 
 .warp-tooltip-status {
     font-size: 13px;
-    color: #9aa0a6;
+    color: gray;
     margin-bottom: 12px;
     line-height: 1.4;
     font-weight: 500;
@@ -1832,7 +1865,7 @@ body {
     justify-content: center;
     padding: 0;
     transition: background 0.15s;
-    color: #9aa0a6;
+    color: gray;
     position: relative;
 }
 
@@ -1841,7 +1874,8 @@ body {
 }
 
 .tor-btn.connected {
-    color: #a370db; /* Tor Purple color */
+    color: #a370db;
+    /* Tor Purple color */
 }
 
 .tor-btn.connecting {
@@ -1850,10 +1884,12 @@ body {
 }
 
 @keyframes torPulse {
+
     0%,
     100% {
         opacity: 1;
     }
+
     50% {
         opacity: 0.4;
     }
@@ -1905,7 +1941,8 @@ body {
 }
 
 .tor-status-dot.connected {
-    background: #81c995; /* light green */
+    background: #81c995;
+    /* light green */
 }
 
 .tor-status-dot.connecting {
@@ -1914,7 +1951,7 @@ body {
 
 .tor-tooltip-status {
     font-size: 13px;
-    color: #9aa0a6;
+    color: gray;
     margin-bottom: 12px;
     line-height: 1.4;
     font-weight: 500;
@@ -1925,7 +1962,8 @@ body {
     padding: 8px;
     border: none;
     border-radius: 8px;
-    background: #7d46b3; /* Tor purple */
+    background: #7d46b3;
+    /* Tor purple */
     color: #fff;
     font-size: 13px;
     font-weight: 600;
@@ -2076,7 +2114,7 @@ body {
     height: 34px;
     border: none;
     background: #2C2C2C;
-    color: #9aa0a6;
+    color: gray;
     cursor: pointer;
     border-radius: 8px;
     font-size: 15px;
@@ -2160,7 +2198,7 @@ body {
     height: 30px;
     border: none;
     background: transparent;
-    color: #9aa0a6;
+    color: gray;
     cursor: pointer;
     border-radius: 7px;
     font-size: 16px;
@@ -2200,7 +2238,7 @@ body {
     padding: 9px 12px;
     border-radius: 8px;
     cursor: pointer;
-    color: #9aa0a6;
+    color: gray;
     font-size: 13px;
     font-weight: 500;
     transition: background 0.15s, color 0.15s;
@@ -2305,7 +2343,7 @@ body {
     left: 4px;
     width: 16px;
     height: 16px;
-    background: #9aa0a6;
+    background: gray;
     border-radius: 50%;
     transition: transform 0.2s, background 0.2s;
 }
@@ -2364,7 +2402,7 @@ body {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    color: #9aa0a6;
+    color: gray;
     font-size: 12px;
     border: 2px dashed rgba(255, 255, 255, 0.12);
 }
@@ -2477,7 +2515,7 @@ body {
 .wm-custom-swatch {
     background: rgba(255, 255, 255, 0.06);
     border: 2px dashed rgba(255, 255, 255, 0.2);
-    color: #9aa0a6;
+    color: gray;
     font-size: 13px;
     overflow: hidden;
 }
@@ -2510,8 +2548,8 @@ body {
     width: 72px;
     height: 72px;
     border-radius: 16px;
-    background: rgba(255,255,255,0.06);
-    border: 2px dashed rgba(255,255,255,0.15);
+    background: rgba(255, 255, 255, 0.06);
+    border: 2px dashed rgba(255, 255, 255, 0.15);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2527,7 +2565,7 @@ body {
 
 .wm-brand-logo-preview i {
     font-size: 24px;
-    color: rgba(255,255,255,0.25);
+    color: rgba(255, 255, 255, 0.25);
 }
 
 .wm-brand-logo-actions {
@@ -2541,8 +2579,8 @@ body {
     align-items: center;
     gap: 7px;
     padding: 8px 14px;
-    background: rgba(167,139,250,0.12);
-    border: 1px solid rgba(167,139,250,0.25);
+    background: rgba(167, 139, 250, 0.12);
+    border: 1px solid rgba(167, 139, 250, 0.25);
     border-radius: 8px;
     color: #c4b5fd;
     font-size: 12px;
@@ -2552,8 +2590,8 @@ body {
 }
 
 .wm-brand-upload-btn:hover {
-    background: rgba(167,139,250,0.22);
-    border-color: rgba(167,139,250,0.45);
+    background: rgba(167, 139, 250, 0.22);
+    border-color: rgba(167, 139, 250, 0.45);
 }
 
 .wm-brand-reset-btn {
@@ -2562,9 +2600,9 @@ body {
     gap: 7px;
     padding: 8px 14px;
     background: transparent;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
-    color: #9aa0a6;
+    color: gray;
     font-size: 12px;
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
@@ -2572,7 +2610,7 @@ body {
 }
 
 .wm-brand-reset-btn:hover {
-    background: rgba(255,255,255,0.06);
+    background: rgba(255, 255, 255, 0.06);
     color: #e8eaed;
 }
 
@@ -2585,8 +2623,8 @@ body {
 
 .wm-brand-name-input {
     flex: 1;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
     color: #e8eaed;
     font-size: 13px;
@@ -2596,7 +2634,7 @@ body {
 }
 
 .wm-brand-name-input:focus {
-    border-color: rgba(167,139,250,0.5);
+    border-color: rgba(167, 139, 250, 0.5);
 }
 
 .wm-brand-name-input::placeholder {
@@ -2650,7 +2688,7 @@ body {
     transition: background 0.15s;
     flex-shrink: 0;
     font-size: 14px;
-    color: #9aa0a6;
+    color: gray;
 }
 
 .site-info-btn:hover {
@@ -2662,7 +2700,7 @@ body {
 }
 
 .site-info-btn.neutral {
-    color: #9aa0a6;
+    color: gray;
 }
 
 .site-info-btn.tor {
@@ -2707,7 +2745,7 @@ body {
     height: 28px;
     border: none;
     background: transparent;
-    color: #9aa0a6;
+    color: gray;
     cursor: pointer;
     border-radius: 6px;
     font-size: 15px;
@@ -2752,14 +2790,14 @@ body {
 
 .site-info-item-icon {
     font-size: 18px;
-    color: #9aa0a6;
+    color: gray;
     width: 22px;
     text-align: center;
     flex-shrink: 0;
 }
 
 .site-info-item-icon.secure {
-    color: #9aa0a6;
+    color: gray;
 }
 
 .site-info-item-icon.insecure {
@@ -2812,7 +2850,7 @@ body {
     height: 30px;
     border: 1.5px solid rgba(255, 255, 255, 0.2);
     background: transparent;
-    color: #9aa0a6;
+    color: gray;
     cursor: pointer;
     border-radius: 50%;
     font-size: 13px;
@@ -2841,7 +2879,7 @@ body {
 
 .site-info-sec-icon {
     font-size: 22px;
-    color: #9aa0a6;
+    color: gray;
     flex-shrink: 0;
     margin-top: 2px;
 }
@@ -2860,7 +2898,7 @@ body {
 
 .site-info-sec-desc {
     font-size: 13px;
-    color: #9aa0a6;
+    color: gray;
     line-height: 1.5;
 }
 
@@ -3105,7 +3143,7 @@ body.popup-window .popup-title {
 
 .permission-deny-btn {
     background: rgba(255, 255, 255, 0.07);
-    color: #9aa0a6;
+    color: gray;
 }
 
 .permission-deny-btn:hover {
@@ -3147,10 +3185,8 @@ body.popup-window .popup-title {
     left: 50%;
     transform: translate(-50%, 0);
     width: 400px;
-    background: rgba(30, 30, 38, 0.97);
-    backdrop-filter: blur(32px);
-    -webkit-backdrop-filter: blur(32px);
-    border: 1px solid rgba(167, 139, 250, 0.2);
+    background: #2c2c2c;
+    border: 1px solid #3a3a3a;
     border-radius: 22px;
     box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.04);
     z-index: 100201;
@@ -3167,7 +3203,7 @@ body.popup-window .popup-title {
     right: 14px;
     background: transparent;
     border: none;
-    color: #9aa0a6;
+    color: gray;
     font-size: 16px;
     cursor: pointer;
     transition: color 0.15s, transform 0.12s, background 0.15s;
@@ -3215,11 +3251,6 @@ body.popup-window .popup-title {
     color: #f59e0b;
 }
 
-.custom-dialog-icon-wrap.type-confirm {
-    background: linear-gradient(135deg, #7c3aed22, #a78bfa22);
-    border-color: rgba(167, 139, 250, 0.2);
-    color: #a78bfa;
-}
 
 .custom-dialog-icon-wrap.type-prompt {
     background: linear-gradient(135deg, #0ea5e922, #6366f122);
@@ -3284,6 +3315,7 @@ body.popup-window .popup-title {
     border: none;
     font-size: 14px;
     font-weight: 600;
+    outline: none;
     cursor: pointer;
     transition: background 0.15s, transform 0.12s, box-shadow 0.15s;
     font-family: inherit;
@@ -3291,7 +3323,7 @@ body.popup-window .popup-title {
 
 .custom-dialog-cancel {
     background: rgba(255, 255, 255, 0.07);
-    color: #9aa0a6;
+    color: gray;
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -3301,18 +3333,98 @@ body.popup-window .popup-title {
 }
 
 .custom-dialog-ok {
-    background: linear-gradient(135deg, #7c3aed, #a78bfa);
+    background: #a78bfa;
     color: #fff;
-    box-shadow: 0 2px 12px rgba(124, 58, 237, 0.35);
     min-width: 90px;
 }
 
 .custom-dialog-ok:hover {
-    background: linear-gradient(135deg, #6d28d9, #8b5cf6);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 18px rgba(124, 58, 237, 0.45);
+    background: #8b5cf6;
 }
 
 .custom-dialog-ok:active {
     transform: translateY(0);
+}
+
+/* ── Yeni Sekme Onboarding Tooltip ────────────────────────────────────────── */
+.new-tab-tooltip {
+    position: absolute;
+    z-index: 10000;
+    background: rgba(30, 30, 30, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 14px 16px;
+    width: 250px;
+    color: #e8eaed;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    pointer-events: auto;
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+    transition: opacity 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.new-tab-tooltip.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.new-tab-tooltip-content {
+    margin-bottom: 12px;
+    font-weight: 500;
+    color: #e8eaed;
+}
+
+.new-tab-tooltip-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.new-tab-tooltip-btn {
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+    font-family: inherit;
+    outline: none;
+}
+
+.new-tab-tooltip-btn.secondary {
+    background: transparent;
+    color: gray;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.new-tab-tooltip-btn.secondary:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #e8eaed;
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.new-tab-tooltip-btn.primary {
+    background: #a78bfa;
+    color: #121212;
+}
+
+.new-tab-tooltip-btn.primary:hover {
+    background: #c084fc;
+}
+
+.new-tab-tooltip-arrow {
+    position: absolute;
+    top: -6px;
+    width: 10px;
+    height: 10px;
+    background: rgb(30, 30, 30); /* fallback solid matching background color */
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    transform: rotate(45deg);
+    z-index: -1;
 }

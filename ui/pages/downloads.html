@@ -3,8 +3,9 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>İndirilenler</title>
+    <title data-translate="downloads_title">İndirilenler</title>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -47,7 +48,7 @@
         }
 
         .page-title i {
-            color: #838383;
+            color: gray;
             font-size: 26px;
         }
 
@@ -73,15 +74,15 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            background: #202124;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: #3b3b3b;
+            border: 1px solid #444444;
             border-radius: 12px;
             padding: 10px 16px;
             margin-bottom: 24px;
         }
 
         .search-bar i {
-            color: #9aa0a6;
+            color: gray;
             font-size: 16px;
         }
 
@@ -95,7 +96,7 @@
         }
 
         .search-bar input::placeholder {
-            color: #9aa0a6;
+            color: gray;
         }
 
         .dl-item {
@@ -148,7 +149,7 @@
 
         .dl-meta {
             font-size: 11px;
-            color: #9aa0a6;
+            color: gray;
         }
 
         .dl-state {
@@ -184,7 +185,7 @@
             height: 28px;
             border: none;
             background: transparent;
-            color: #9aa0a6;
+            color: gray;
             cursor: pointer;
             border-radius: 6px;
             font-size: 15px;
@@ -202,7 +203,7 @@
         .empty-state {
             text-align: center;
             padding: 60px 0;
-            color: #5f6368;
+            color: gray;
         }
 
         .empty-state i {
@@ -218,8 +219,39 @@
 
         .dl-size {
             font-size: 11px;
-            color: #5f6368;
+            color: gray;
             flex-shrink: 0;
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .category-tab {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: gray;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .category-tab:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #e8eaed;
+        }
+
+        .category-tab.active {
+            background: rgba(167, 139, 250, 0.15);
+            border-color: rgba(167, 139, 250, 0.3);
+            color: #c084fc;
         }
     </style>
 </head>
@@ -229,20 +261,43 @@
         <div class="page-header">
             <div class="page-title">
                 <i class="fa-solid fa-circle-down"></i>
-                İndirilenler
+                <span data-translate="downloads_title">İndirilenler</span>
             </div>
             <button class="clear-btn" id="clearAllBtn">
-                <i class="fa-solid fa-trash-can"></i> Tümünü Temizle
+                <i class="fa-solid fa-trash-can"></i> <span data-translate="clear_all_history">Tümünü Temizle</span>
             </button>
         </div>
         <div class="search-bar">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="searchInput" placeholder="İndirilenler içinde ara...">
+            <input type="text" id="searchInput" data-translate-placeholder="downloads_search_placeholder"
+                placeholder="İndirilenler içinde ara...">
         </div>
+
+        <div class="category-tabs">
+            <button class="category-tab active" data-category="all" data-translate="downloads_all">Tümü</button>
+            <button class="category-tab" data-category="images" data-translate="downloads_images">Resimler</button>
+            <button class="category-tab" data-category="videos" data-translate="downloads_videos">Videolar</button>
+            <button class="category-tab" data-category="docs" data-translate="downloads_docs">Belgeler</button>
+            <button class="category-tab" data-category="other" data-translate="downloads_other">Diğer</button>
+        </div>
+
         <div id="dlList"></div>
     </div>
+    <script src="../translations.js"></script>
     <script>
         let allDownloads = [];
+        let currentCategory = 'all';
+
+        function getCategory(filename) {
+            const ext = (filename || '').split('.').pop().toLowerCase();
+            const images = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'];
+            const videos = ['mp4', 'mkv', 'avi', 'mov', 'wmv', 'flv', 'webm'];
+            const docs = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'rtf', 'odt', 'ods', 'odp'];
+            if (images.includes(ext)) return 'images';
+            if (videos.includes(ext)) return 'videos';
+            if (docs.includes(ext)) return 'docs';
+            return 'other';
+        }
 
         function formatBytes(bytes) {
             if (!bytes || bytes === 0) return '0 B';
@@ -270,13 +325,18 @@
             list.innerHTML = '';
 
             let items = [...allDownloads];
+
+            if (currentCategory !== 'all') {
+                items = items.filter(d => getCategory(d.filename) === currentCategory);
+            }
+
             if (filter) {
                 const q = filter.toLowerCase();
                 items = items.filter(d => d.filename.toLowerCase().includes(q));
             }
 
             if (items.length === 0) {
-                list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-circle-down"></i><p>Henüz indirme yok</p></div>`;
+                list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-circle-down"></i><p>${window.XenixaI18n.t('no_downloads')}</p></div>`;
                 return;
             }
 
@@ -288,15 +348,20 @@
                     ? `<img src="${dl.fileIcon}" alt="">`
                     : `<i class="${getExtIcon(dl.filename)}"></i>`;
 
-                const stateLabel = dl.state === 'completed' ? 'Tamamlandı'
-                    : dl.state === 'cancelled' ? 'İptal edildi' : 'Kesintiye uğradı';
+                const stateLabel = dl.state === 'completed' ? window.XenixaI18n.t('download_completed')
+                    : dl.state === 'cancelled' ? window.XenixaI18n.t('download_cancelled')
+                        : dl.state === 'paused' ? window.XenixaI18n.t('download_paused')
+                            : window.XenixaI18n.t('download_failed');
 
-                const date = dl.date ? new Date(dl.date).toLocaleDateString('tr-TR', {
+                const locale = window.XenixaI18n.currentLang === 'tr' ? 'tr-TR' : window.XenixaI18n.currentLang === 'ru' ? 'ru-RU' : 'en-US';
+                const date = dl.date ? new Date(dl.date).toLocaleDateString(locale, {
                     day: '2-digit', month: 'short', year: 'numeric',
                     hour: '2-digit', minute: '2-digit'
                 }) : '';
 
                 const safePathAttr = (dl.savePath || '').replace(/"/g, '&quot;');
+                const showInFolderText = window.XenixaI18n.t('show_in_folder');
+                const removeFromListText = window.XenixaI18n.t('remove_from_list');
 
                 el.innerHTML = `
                 <div class="dl-icon">${iconHtml}</div>
@@ -306,8 +371,8 @@
                 </div>
                 <span class="dl-state ${dl.state}">${stateLabel}</span>
                 <div class="dl-actions">
-                    ${dl.state === 'completed' ? `<button class="dl-action-btn folder-btn" title="Klasörde göster" data-path="${safePathAttr}"><i class="fa-solid fa-folder-open"></i></button>` : ''}
-                    <button class="dl-action-btn del-btn" title="Listeden kaldır"><i class="fa-solid fa-xmark"></i></button>
+                    ${dl.state === 'completed' ? `<button class="dl-action-btn folder-btn" title="${showInFolderText}" data-path="${safePathAttr}"><i class="fa-solid fa-folder-open"></i></button>` : ''}
+                    <button class="dl-action-btn del-btn" title="${removeFromListText}"><i class="fa-solid fa-xmark"></i></button>
                 </div>
             `;
 
@@ -332,6 +397,15 @@
 
         document.getElementById('searchInput').addEventListener('input', e => render(e.target.value));
 
+        document.querySelectorAll('.category-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentCategory = tab.dataset.category;
+                render(document.getElementById('searchInput').value);
+            });
+        });
+
         document.getElementById('clearAllBtn').addEventListener('click', () => {
             allDownloads = [];
             const { ipcRenderer } = require('electron');
@@ -341,16 +415,15 @@
 
         function loadData() {
             try {
-                const params = new URLSearchParams(window.location.search);
-                const raw = params.get('data');
-                if (raw) {
-                    allDownloads = JSON.parse(raw);
+                const stored = localStorage.getItem('xenixa_downloads_history');
+                if (stored) {
+                    allDownloads = JSON.parse(stored);
                     return;
                 }
-            } catch (e) { }
-            if (window.__xenixaDownloads) {
-                allDownloads = window.__xenixaDownloads;
+            } catch (e) {
+                console.error("Failed to load downloads history:", e);
             }
+            allDownloads = [];
         }
 
         loadData();

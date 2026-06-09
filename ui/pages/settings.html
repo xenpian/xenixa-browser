@@ -56,7 +56,7 @@
         .settings-section-title {
             font-size: 11px;
             font-weight: 600;
-            color: #9aa0a6;
+            color: gray;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             padding: 14px 18px 8px 18px;
@@ -87,7 +87,7 @@
 
         .settings-row-desc {
             font-size: 12px;
-            color: #9aa0a6;
+            color: gray;
             margin-top: 3px;
         }
 
@@ -169,7 +169,7 @@
 
         .version-text {
             font-size: 12px;
-            color: #5f6368;
+            color: gray;
         }
 
         /* Araç doğrulama kartları */
@@ -252,7 +252,7 @@
 
         .tool-path {
             font-size: 11px;
-            color: #6b7280;
+            color: gray;
             margin-top: 4px;
             font-family: 'Consolas', monospace;
             word-break: break-all;
@@ -264,7 +264,7 @@
 
         .tool-desc {
             font-size: 12px;
-            color: #9aa0a6;
+            color: gray;
             margin-top: 4px;
             line-height: 1.5;
         }
@@ -298,7 +298,7 @@
         .tool-download-link {
             padding: 6px 14px;
             background: rgba(255, 255, 255, 0.05);
-            color: #9aa0a6;
+            color: gray;
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 8px;
             font-size: 12px;
@@ -318,17 +318,17 @@
         .tool-paths-detail {
             margin-top: 8px;
             font-size: 11px;
-            color: #5f6368;
+            color: gray;
         }
 
         .tool-paths-detail summary {
             cursor: pointer;
-            color: #6b7280;
+            color: gray;
             user-select: none;
         }
 
         .tool-paths-detail summary:hover {
-            color: #9aa0a6;
+            color: gray;
         }
 
         .tool-paths-list {
@@ -340,7 +340,7 @@
         .tool-paths-list li {
             font-family: 'Consolas', monospace;
             font-size: 10px;
-            color: #4b5563;
+            color: gray;
             padding: 2px 0;
             word-break: break-all;
         }
@@ -440,8 +440,76 @@
         }
 
         @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Password Manager Styling */
+        .password-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: #20212400;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-top: 8px;
+            font-size: 13px;
+        }
+
+        .password-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .password-site {
+            font-weight: 500;
+            color: #e8eaed;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .password-user {
+            font-size: 11px;
+            color: gray;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .password-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .password-btn {
+            background: none;
+            border: none;
+            color: gray;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            transition: color 0.15s, background 0.15s;
+        }
+
+        .password-btn:hover {
+            color: #e8eaed;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .password-btn.delete:hover {
+            color: #f28b82;
+            background: rgba(242, 139, 130, 0.15);
         }
     </style>
 </head>
@@ -450,16 +518,16 @@
     <div class="page-container">
         <div class="page-title">
             <i class="fa-solid fa-gear"></i>
-            Ayarlar
+            <span data-translate="settings">Ayarlar</span>
         </div>
 
         <!-- Arama Motoru -->
         <div class="settings-section">
-            <div class="settings-section-title">Arama</div>
+            <div class="settings-section-title" data-translate="search_section">Arama</div>
             <div class="settings-row">
                 <div class="settings-row-info">
-                    <div class="settings-row-label">Varsayılan Arama Motoru</div>
-                    <div class="settings-row-desc">URL çubuğundan yapılan aramalarda kullanılır</div>
+                    <div class="settings-row-label" data-translate="default_search_engine">Varsayılan Arama Motoru</div>
+                    <div class="settings-row-desc" data-translate="default_search_desc">URL çubuğundan yapılan aramalarda kullanılır</div>
                 </div>
                 <select class="settings-select" id="searchEngineSelect">
                     <option value="google">Google</option>
@@ -468,15 +536,26 @@
                     <option value="yandex">Yandex</option>
                 </select>
             </div>
+            <div class="settings-row">
+                <div class="settings-row-info">
+                    <div class="settings-row-label" data-translate="language">Dil</div>
+                    <div class="settings-row-desc" data-translate="language_desc">Tarayıcı arayüz dilini değiştirin</div>
+                </div>
+                <select class="settings-select" id="languageSelect">
+                    <option value="tr">Türkçe</option>
+                    <option value="en">English</option>
+                    <option value="ru">Русский</option>
+                </select>
+            </div>
         </div>
 
         <!-- Görünüm -->
         <div class="settings-section">
-            <div class="settings-section-title">Görünüm</div>
+            <div class="settings-section-title" data-translate="appearance_section">Görünüm</div>
             <div class="settings-row">
                 <div class="settings-row-info">
-                    <div class="settings-row-label">Sekme Yükleme Animasyonu</div>
-                    <div class="settings-row-desc">Sayfa yüklenirken dönen ikon göster</div>
+                    <div class="settings-row-label" data-translate="tab_spinner">Sekme Yükleme Animasyonu</div>
+                    <div class="settings-row-desc" data-translate="tab_spinner_desc">Sayfa yüklenirken dönen ikon göster</div>
                 </div>
                 <label class="toggle">
                     <input type="checkbox" id="tabSpinnerToggle" checked>
@@ -487,33 +566,55 @@
 
         <!-- Gizlilik -->
         <div class="settings-section">
-            <div class="settings-section-title">Gizlilik & Veri</div>
+            <div class="settings-section-title" data-translate="privacy_section">Gizlilik & Veri</div>
             <div class="settings-row">
                 <div class="settings-row-info">
-                    <div class="settings-row-label">Arama Geçmişini Temizle</div>
-                    <div class="settings-row-desc">Tüm arama ve ziyaret geçmişini sil</div>
+                    <div class="settings-row-label" data-translate="ad_blocker">Reklam Engelleyici (Ad Blocker)</div>
+                    <div class="settings-row-desc" data-translate="ad_blocker_desc">Reklamları ve takipçileri otomatik engeller</div>
                 </div>
-                <button class="danger-btn" id="clearHistoryBtn">Temizle</button>
+                <label class="toggle">
+                    <input type="checkbox" id="adBlockToggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
             </div>
             <div class="settings-row">
                 <div class="settings-row-info">
-                    <div class="settings-row-label">İndirme Geçmişini Temizle</div>
-                    <div class="settings-row-desc">İndirme listesini temizle (dosyalar silinmez)</div>
+                    <div class="settings-row-label" data-translate="clear_search_history">Arama Geçmişini Temizle</div>
+                    <div class="settings-row-desc" data-translate="clear_search_desc">Tüm arama ve ziyaret geçmişini sil</div>
                 </div>
-                <button class="danger-btn" id="clearDownloadsBtn">Temizle</button>
+                <button class="danger-btn" id="clearHistoryBtn" data-translate="clear_all_history">Temizle</button>
             </div>
             <div class="settings-row">
                 <div class="settings-row-info">
-                    <div class="settings-row-label">Tüm Verileri Sıfırla</div>
-                    <div class="settings-row-desc">Geçmiş, ayarlar ve tüm kayıtlı verileri sil</div>
+                    <div class="settings-row-label" data-translate="clear_downloads_history">İndirme Geçmişini Temizle</div>
+                    <div class="settings-row-desc" data-translate="clear_downloads_desc">İndirme listesini temizle (dosyalar silinmez)</div>
                 </div>
-                <button class="danger-btn" id="clearAllBtn">Sıfırla</button>
+                <button class="danger-btn" id="clearDownloadsBtn" data-translate="clear_all_history">Temizle</button>
+            </div>
+            <div class="settings-row">
+                <div class="settings-row-info">
+                    <div class="settings-row-label" data-translate="clear_all_data">Tüm Verileri Sıfırla</div>
+                    <div class="settings-row-desc" data-translate="clear_all_desc">Geçmiş, ayarlar ve tüm kayıtlı verileri sil</div>
+                </div>
+                <button class="danger-btn" id="clearAllBtn" data-translate="clear_all_history">Sıfırla</button>
+            </div>
+        </div>
+
+        <!-- Şifre Yöneticisi -->
+        <div class="settings-section">
+            <div class="settings-section-title" data-translate="password_manager">Şifre Yöneticisi</div>
+            <div style="padding: 14px 18px 0 18px;">
+                <div class="settings-row-label" style="font-size: 14px;" data-translate="saved_passwords">Kayıtlı Şifreler</div>
+                <div class="settings-row-desc" style="font-size: 12px; color: gray; margin-top: 3px;" data-translate="saved_passwords_desc">Tarayıcıya kaydedilmiş şifreleriniz</div>
+            </div>
+            <div id="passwordsList" style="padding: 10px 18px 18px 18px;">
+                <!-- Şifreler dinamik yüklenecek -->
             </div>
         </div>
 
         <!-- Araçlar -->
         <div class="settings-section">
-            <div class="settings-section-title">Araçlar & Gizlilik</div>
+            <div class="settings-section-title" data-translate="tools_section">Araçlar & Gizlilik</div>
 
             <!-- Cloudflare WARP -->
             <div class="tool-card">
@@ -523,38 +624,39 @@
                 <div class="tool-body">
                     <div class="tool-name">
                         Cloudflare WARP
-                        <span class="tool-badge checking" id="warpBadge">Kontrol ediliyor…</span>
+                        <span class="tool-badge checking" id="warpBadge" data-translate="warp_status_checking">Kontrol ediliyor…</span>
                     </div>
-                    <div class="tool-desc">DNS şifreleme ve VPN tüneli sağlar. `warp-cli.exe` konumunu belirleyin.</div>
-                    
+                    <div class="tool-desc" data-translate="warp_desc">DNS şifreleme ve VPN tüneli sağlar. `warp-cli.exe` konumunu belirleyin.</div>
+
                     <div class="settings-input-group">
-                        <input type="text" class="settings-input" id="warpPathInput" placeholder="warp-cli.exe dosya yolu">
+                        <input type="text" class="settings-input" id="warpPathInput"
+                            placeholder="warp-cli.exe dosya yolu">
                         <button class="path-action-btn" id="warpBrowseBtn">
-                            <i class="ri-folder-open-line"></i> Gözat
+                            <i class="ri-folder-open-line"></i> <span data-translate="ctx_inspect">Gözat</span>
                         </button>
                     </div>
 
                     <div class="tool-actions-row">
                         <div class="tool-left-btns">
                             <button class="path-action-btn primary" id="warpCheckBtn">
-                                <i class="ri-refresh-line"></i> Doğrula ve Kaydet
+                                <i class="ri-refresh-line"></i> <span data-translate="verify_and_save">Doğrula ve Kaydet</span>
                             </button>
-                            <button class="path-action-btn" id="warpResetBtn" title="Varsayılan konumlara sıfırla">
-                                <i class="ri-history-line"></i> Sıfırla
+                            <button class="path-action-btn" id="warpResetBtn" data-translate-title="reset_to_default">
+                                <i class="ri-history-line"></i> <span data-translate="reset_to_default">Sıfırla</span>
                             </button>
                         </div>
                         <div class="tool-right-links">
                             <a class="tool-download-link" href="#" id="warpDownloadLink"
-                               onclick="openExternal('https://one.one.one.one/'); return false;">
-                                <i class="ri-download-line"></i> İndir (one.one.one.one)
+                                onclick="openExternal('https://one.one.one.one/'); return false;">
+                                <i class="ri-download-line"></i> <span data-translate="download_tool">İndir (one.one.one.one)</span>
                             </a>
                         </div>
                     </div>
-                    
+
                     <div class="tool-path" id="warpPath" style="margin-top: 8px; display: none;">—</div>
-                    
+
                     <details class="tool-paths-detail" id="warpPathsDetail" style="margin-top: 12px;">
-                        <summary>Varsayılan aranan konumlar</summary>
+                        <summary data-translate="default_search_paths">Varsayılan aranan konumlar</summary>
                         <ul class="tool-paths-list" id="warpPathsList"></ul>
                     </details>
                 </div>
@@ -568,39 +670,39 @@
                 <div class="tool-body">
                     <div class="tool-name">
                         Tor Browser
-                        <span class="tool-badge checking" id="torBadge">Kontrol ediliyor…</span>
-                        <span class="tool-badge running" id="torRunningBadge" style="display:none">Çalışıyor</span>
+                        <span class="tool-badge checking" id="torBadge" data-translate="warp_status_checking">Kontrol ediliyor…</span>
+                        <span class="tool-badge running" id="torRunningBadge" style="display:none" data-translate="tor_connected">Çalışıyor</span>
                     </div>
-                    <div class="tool-desc">.onion siteleri açmak için `tor.exe` konumunu belirleyin.</div>
-                    
+                    <div class="tool-desc" data-translate="tor_desc">.onion siteleri açmak için `tor.exe` konumunu belirleyin.</div>
+
                     <div class="settings-input-group">
                         <input type="text" class="settings-input" id="torPathInput" placeholder="tor.exe dosya yolu">
                         <button class="path-action-btn" id="torBrowseBtn">
-                            <i class="ri-folder-open-line"></i> Gözat
+                            <i class="ri-folder-open-line"></i> <span data-translate="ctx_inspect">Gözat</span>
                         </button>
                     </div>
 
                     <div class="tool-actions-row">
                         <div class="tool-left-btns">
                             <button class="path-action-btn primary" id="torCheckBtn">
-                                <i class="ri-refresh-line"></i> Doğrula ve Kaydet
+                                <i class="ri-refresh-line"></i> <span data-translate="verify_and_save">Doğrula ve Kaydet</span>
                             </button>
-                            <button class="path-action-btn" id="torResetBtn" title="Varsayılan konumlara sıfırla">
-                                <i class="ri-history-line"></i> Sıfırla
+                            <button class="path-action-btn" id="torResetBtn" data-translate-title="reset_to_default">
+                                <i class="ri-history-line"></i> <span data-translate="reset_to_default">Sıfırla</span>
                             </button>
                         </div>
                         <div class="tool-right-links">
                             <a class="tool-download-link" href="#"
-                               onclick="openExternal('https://www.torproject.org/download/'); return false;">
-                                <i class="ri-download-line"></i> İndir (torproject.org)
+                                onclick="openExternal('https://www.torproject.org/download/'); return false;">
+                                <i class="ri-download-line"></i> <span data-translate="download_tool">İndir (torproject.org)</span>
                             </a>
                         </div>
                     </div>
-                    
+
                     <div class="tool-path" id="torPath" style="margin-top: 8px; display: none;">—</div>
 
                     <details class="tool-paths-detail" id="torPathsDetail" style="margin-top: 12px;">
-                        <summary>Varsayılan aranan konumlar</summary>
+                        <summary data-translate="default_search_paths">Varsayılan aranan konumlar</summary>
                         <ul class="tool-paths-list" id="torPathsList"></ul>
                     </details>
                 </div>
@@ -609,23 +711,153 @@
 
         <!-- Hakkında -->
         <div class="settings-section">
-            <div class="settings-section-title">Hakkında</div>
+            <div class="settings-section-title" data-translate="about_section">Hakkında</div>
             <div class="settings-row">
                 <div class="settings-row-info">
                     <div class="settings-row-label">Xenixa Browser</div>
-                    <div class="settings-row-desc">Electron tabanlı özel tarayıcı</div>
+                    <div class="settings-row-desc" data-translate="about_desc">Electron tabanlı özel tarayıcı</div>
                 </div>
                 <span class="version-text">v1.0.0</span>
             </div>
         </div>
     </div>
+    <script src="../translations.js"></script>
     <script>
+        const { ipcRenderer } = require('electron');
+
         // Arama motoru
         const engineSelect = document.getElementById('searchEngineSelect');
-        engineSelect.value = localStorage.getItem('xenixa_search_engine') || 'google';
         engineSelect.addEventListener('change', () => {
             localStorage.setItem('xenixa_search_engine', engineSelect.value);
+            // Ana arayüzü güncelle
+            try {
+                ipcRenderer.send('search-engines-updated');
+            } catch (e) { }
         });
+
+        // Dil
+        const langSelect = document.getElementById('languageSelect');
+        if (langSelect) {
+            langSelect.value = window.XenixaI18n.currentLang;
+            langSelect.addEventListener('change', () => {
+                window.XenixaI18n.setLanguage(langSelect.value);
+                ipcRenderer.send('language-changed', langSelect.value);
+            });
+        }
+
+        // ── Özel Arama Motorlarını Yükle ve Yönet ──────────────────────────────
+        function loadCustomEngines() {
+            let custom = {};
+            try {
+                custom = JSON.parse(localStorage.getItem('xenixa_custom_search_engines') || '{}');
+            } catch (e) { }
+
+            // Seçenekleri güncelle
+            engineSelect.innerHTML = `
+                <option value="google">Google</option>
+                <option value="duckduckgo">DuckDuckGo</option>
+                <option value="yahoo">Yahoo Search</option>
+                <option value="yandex">Yandex</option>
+            `;
+
+            const list = document.getElementById('customEnginesList');
+            if (list) list.innerHTML = '';
+
+            Object.entries(custom).forEach(([key, engine]) => {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = engine.name;
+                engineSelect.appendChild(opt);
+
+                if (list) {
+                    const item = document.createElement('div');
+                    item.className = 'password-item';
+                    item.style.marginTop = '6px';
+                    item.innerHTML = `
+                        <div class="password-info">
+                            <span class="password-site">${engine.name}</span>
+                            <span class="password-user" style="font-family: monospace; font-size: 10px; word-break: break-all;">${engine.url}</span>
+                        </div>
+                        <div class="password-actions">
+                            <button class="password-btn delete" title="Sil"><i class="ri-delete-bin-line"></i></button>
+                        </div>
+                    `;
+
+                    item.querySelector('.password-btn.delete').addEventListener('click', () => {
+                        if (confirm(`${engine.name} arama motorunu silmek istediğinize emin misiniz?`)) {
+                            delete custom[key];
+                            localStorage.setItem('xenixa_custom_search_engines', JSON.stringify(custom));
+                            if (localStorage.getItem('xenixa_search_engine') === key) {
+                                localStorage.setItem('xenixa_search_engine', 'google');
+                            }
+                            loadCustomEngines();
+                            try {
+                                ipcRenderer.send('search-engines-updated');
+                            } catch (e) { }
+                        }
+                    });
+
+                    list.appendChild(item);
+                }
+            });
+
+            engineSelect.value = localStorage.getItem('xenixa_search_engine') || 'google';
+        }
+
+        // Arama motoru ekleme
+        const addEngineBtn = document.getElementById('addCustomEngineBtn');
+        if (addEngineBtn) {
+            addEngineBtn.addEventListener('click', () => {
+                const nameInput = document.getElementById('customEngineName');
+                const urlInput = document.getElementById('customEngineUrl');
+                const name = nameInput.value.trim();
+                const url = urlInput.value.trim();
+
+                if (!name || !url) {
+                    alert('Lütfen arama motoru adını ve URL\'sini girin.');
+                    return;
+                }
+
+                if (!url.includes('%s')) {
+                    alert('Arama URL\'si sorgunun geleceği yere "%s" parametresini içermelidir (Örn: https://searx.be/search?q=%s).');
+                    return;
+                }
+
+                let custom = {};
+                try {
+                    custom = JSON.parse(localStorage.getItem('xenixa_custom_search_engines') || '{}');
+                } catch (e) { }
+
+                const key = name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                custom[key] = {
+                    name: name,
+                    url: url,
+                    favicon: `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=32`
+                };
+
+                localStorage.setItem('xenixa_custom_search_engines', JSON.stringify(custom));
+                nameInput.value = '';
+                urlInput.value = '';
+                loadCustomEngines();
+
+                try {
+                    ipcRenderer.send('search-engines-updated');
+                } catch (e) { }
+            });
+        }
+
+        loadCustomEngines();
+
+        // Ad blocker
+        const adBlockToggle = document.getElementById('adBlockToggle');
+        ipcRenderer.invoke('get-adblock-state').then(enabled => {
+            if (adBlockToggle) adBlockToggle.checked = enabled;
+        });
+        if (adBlockToggle) {
+            adBlockToggle.addEventListener('change', () => {
+                ipcRenderer.invoke('save-adblock-state', adBlockToggle.checked);
+            });
+        }
 
         // Geçmiş temizle
         document.getElementById('clearHistoryBtn').addEventListener('click', () => {
@@ -650,7 +882,6 @@
         });
 
         // ── Araç Konumu Doğrulama ─────────────────────────────────────────────
-        const { ipcRenderer } = require('electron');
 
         function openExternal(url) {
             const { shell } = require('electron');
@@ -804,6 +1035,66 @@
 
         // Sayfa açılınca otomatik kontrol et
         checkTools();
+
+        // ── Şifre Yöneticisi Dinamik Listeleme ─────────────────────────────────
+        function loadPasswordsList() {
+            const listContainer = document.getElementById('passwordsList');
+            if (!listContainer) return;
+
+            ipcRenderer.invoke('get-passwords').then(passwords => {
+                listContainer.innerHTML = '';
+                if (!passwords || passwords.length === 0) {
+                    listContainer.innerHTML = '<div style="color: gray; font-size: 12px; margin-top: 8px;">Kayıtlı şifre yok</div>';
+                    return;
+                }
+
+                passwords.forEach(p => {
+                    const item = document.createElement('div');
+                    item.className = 'password-item';
+                    item.innerHTML = `
+                        <div class="password-info">
+                            <span class="password-site" title="${p.origin}">${p.origin}</span>
+                            <span class="password-user">${p.username}</span>
+                        </div>
+                        <div class="password-actions">
+                            <button class="password-btn show-pass-btn" title="Şifreyi Göster"><i class="ri-eye-line"></i></button>
+                            <button class="password-btn delete" title="Şifreyi Sil"><i class="ri-delete-bin-line"></i></button>
+                        </div>
+                    `;
+
+                    // Şifre göster/gizle
+                    let showing = false;
+                    const showBtn = item.querySelector('.show-pass-btn');
+                    showBtn.addEventListener('click', () => {
+                        showing = !showing;
+                        if (showing) {
+                            showBtn.innerHTML = '<i class="ri-eye-off-line"></i>';
+                            item.querySelector('.password-user').textContent = `${p.username} · Şifre: ${p.password}`;
+                        } else {
+                            showBtn.innerHTML = '<i class="ri-eye-line"></i>';
+                            item.querySelector('.password-user').textContent = p.username;
+                        }
+                    });
+
+                    // Şifre sil
+                    item.querySelector('.password-btn.delete').addEventListener('click', () => {
+                        if (confirm(`${p.origin} için kayıtlı şifreyi silmek istediğinize emin misiniz?`)) {
+                            ipcRenderer.invoke('delete-password', { origin: p.origin, username: p.username }).then(() => {
+                                loadPasswordsList();
+                            });
+                        }
+                    });
+
+                    listContainer.appendChild(item);
+                });
+            }).catch(err => console.error('Failed to load passwords:', err));
+        }
+
+        loadPasswordsList();
+
+        ipcRenderer.on('passwords-updated', () => {
+            loadPasswordsList();
+        });
         // ─────────────────────────────────────────────────────────────────────
     </script>
 </body>

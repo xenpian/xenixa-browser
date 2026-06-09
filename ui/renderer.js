@@ -95,24 +95,21 @@ function getSpecialPagePath(url) {
     const rel = SPECIAL_PAGES[url];
     if (!rel) return null;
     const base = window.location.href.replace(/\/[^/]+$/, '/');
-    // Veriyi URL'ye encode ederek geç — executeJavaScript'e gerek kalmaz
-    let dataParam = '';
-    if (url === 'xenixa://history') {
-        const data = { visitedTabs, siteVisitCounts, searchHistory };
-        dataParam = '?data=' + encodeURIComponent(JSON.stringify(data));
-    } else if (url === 'xenixa://downloads') {
-        let dlHistory = [];
-        try { dlHistory = JSON.parse(localStorage.getItem('xenixa_downloads_history') || '[]'); } catch(_e) {}
-        dataParam = '?data=' + encodeURIComponent(JSON.stringify(dlHistory));
-    } else if (url === 'xenixa://settings') {
-        const data = { searchEngine: localStorage.getItem('xenixa_search_engine') || 'google' };
-        dataParam = '?data=' + encodeURIComponent(JSON.stringify(data));
-    } else if (url === 'xenixa://bookmarks') {
-        loadBookmarks();
-        const data = { bookmarks };
-        dataParam = '?data=' + encodeURIComponent(JSON.stringify(data));
+    return base + rel + '?v=' + Date.now();
+}
+
+function reloadTab(tab, ignoreCache = false) {
+    if (!tab || !tab.webview) return;
+    if (isSpecialPage(tab.url)) {
+        const filePath = getSpecialPagePath(tab.url);
+        if (filePath) tab.webview.src = filePath;
+    } else {
+        if (ignoreCache) {
+            try { tab.webview.reloadIgnoringCache(); } catch(_e) { try { tab.webview.reload(); } catch(__e) {} }
+        } else {
+            try { tab.webview.reload(); } catch(_e) {}
+        }
     }
-    return base + rel + dataParam;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -132,8 +129,17 @@ const SEARCH_ENGINES = {
 
 let currentEngine = localStorage.getItem('xenixa_search_engine') || 'google';
 
+function getSearchEngines() {
+    let custom = {};
+    try {
+        custom = JSON.parse(localStorage.getItem('xenixa_custom_search_engines') || '{}');
+    } catch (e) {}
+    return { ...SEARCH_ENGINES, ...custom };
+}
+
 function getSearchUrl(query) {
-    const engine = SEARCH_ENGINES[currentEngine] || SEARCH_ENGINES.google;
+    const engines = getSearchEngines();
+    const engine = engines[currentEngine] || engines.google;
     return engine.url + encodeURIComponent(query);
 }
 
@@ -144,15 +150,36 @@ function setSearchEngine(engineKey) {
 }
 
 function updateSearchEngineUI() {
-    const engine = SEARCH_ENGINES[currentEngine] || SEARCH_ENGINES.google;
+    const engines = getSearchEngines();
+    const engine = engines[currentEngine] || engines.google;
     const icon = document.getElementById('searchEngineIcon');
     if (icon) {
-        icon.src = engine.favicon;
+        icon.src = engine.favicon || 'https://www.google.com/favicon.ico';
         icon.alt = engine.name;
     }
-    // Active class güncelle
-    document.querySelectorAll('.search-engine-item').forEach(el => {
-        el.classList.toggle('active', el.dataset.engine === currentEngine);
+    renderSearchEngineDropdown();
+}
+
+function renderSearchEngineDropdown() {
+    const dd = document.getElementById('searchEngineDropdown');
+    if (!dd) return;
+    dd.innerHTML = '';
+
+    const engines = getSearchEngines();
+    Object.entries(engines).forEach(([key, engine]) => {
+        const item = document.createElement('div');
+        item.className = 'search-engine-item' + (key === currentEngine ? ' active' : '');
+        item.dataset.engine = key;
+        item.innerHTML = `
+            <img src="${engine.favicon || 'https://www.google.com/favicon.ico'}" alt="${engine.name}" class="se-icon" onerror="this.src='https://www.google.com/favicon.ico'">
+            <span>${engine.name}</span>
+        `;
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            setSearchEngine(key);
+            hideSearchEngineDropdown();
+        });
+        dd.appendChild(item);
     });
 }
 
@@ -279,56 +306,57 @@ function buildContextMenuItems(params) {
 
     // Bağlantı seçenekleri
     if (hasLink) {
-        items.push({ icon: 'fa-solid fa-arrow-up-right-from-square', label: 'Bağlantıyı yeni sekmede aç', action: () => createNewTab(params.linkURL) });
-        items.push({ icon: 'fa-solid fa-window-restore', label: 'Bağlantıyı yeni pencerede aç', action: () => ipcRenderer.send('open-new-window', { url: params.linkURL }) });
+        items.push({ icon: 'fa-solid fa-arrow-up-right-from-square', label: window.XenixaI18n.t('ctx_open_link_tab'), action: () => createNewTab(params.linkURL) });
+        items.push({ icon: 'fa-solid fa-window-restore', label: window.XenixaI18n.t('ctx_open_link_win'), action: () => ipcRenderer.send('open-new-window', { url: params.linkURL }) });
         items.push({ separator: true });
-        items.push({ icon: 'fa-solid fa-download', label: 'Bağlantıyı farklı kaydet...', action: () => activeWebview && activeWebview.downloadURL(params.linkURL) });
-        items.push({ icon: 'fa-solid fa-link', label: 'Bağlantı adresini kopyala', action: () => navigator.clipboard.writeText(params.linkURL) });
+        items.push({ icon: 'fa-solid fa-download', label: window.XenixaI18n.t('ctx_save_link_as'), action: () => activeWebview && activeWebview.downloadURL(params.linkURL) });
+        items.push({ icon: 'fa-solid fa-link', label: window.XenixaI18n.t('ctx_copy_link_addr'), action: () => navigator.clipboard.writeText(params.linkURL) });
         items.push({ separator: true });
     }
 
     // Resim seçenekleri
     if (hasImage) {
-        items.push({ icon: 'fa-solid fa-image', label: 'Resmi yeni sekmede aç', action: () => createNewTab(params.srcURL) });
-        items.push({ icon: 'fa-solid fa-download', label: 'Resmi farklı kaydet...', action: () => activeWebview && activeWebview.downloadURL(params.srcURL) });
-        items.push({ icon: 'fa-solid fa-copy', label: 'Resmi kopyala', action: () => activeWebview && activeWebview.copyImageAt(params.x, params.y) });
-        items.push({ icon: 'fa-solid fa-link', label: 'Resim adresini kopyala', action: () => navigator.clipboard.writeText(params.srcURL) });
-        items.push({ icon: 'fa-solid fa-magnifying-glass', label: 'Resmi Google ile ara', action: () => createNewTab(`https://lens.google.com/uploadbyurl?url=${encodeURIComponent(params.srcURL)}`) });
+        items.push({ icon: 'fa-solid fa-image', label: window.XenixaI18n.t('ctx_open_img_tab'), action: () => createNewTab(params.srcURL) });
+        items.push({ icon: 'fa-solid fa-download', label: window.XenixaI18n.t('ctx_save_img_as'), action: () => activeWebview && activeWebview.downloadURL(params.srcURL) });
+        items.push({ icon: 'fa-solid fa-copy', label: window.XenixaI18n.t('ctx_copy_img'), action: () => activeWebview && activeWebview.copyImageAt(params.x, params.y) });
+        items.push({ icon: 'fa-solid fa-link', label: window.XenixaI18n.t('ctx_copy_img_addr'), action: () => navigator.clipboard.writeText(params.srcURL) });
+        items.push({ icon: 'fa-solid fa-magnifying-glass', label: window.XenixaI18n.t('ctx_search_img_google'), action: () => createNewTab(`https://lens.google.com/uploadbyurl?url=${encodeURIComponent(params.srcURL)}`) });
         items.push({ separator: true });
     }
 
     // Metin seçimi seçenekleri
     if (hasText) {
-        items.push({ icon: 'fa-solid fa-copy', label: 'Kopyala', action: () => activeWebview && activeWebview.copy() });
-        items.push({ icon: 'fa-solid fa-magnifying-glass', label: `"${params.selectionText.slice(0, 20)}${params.selectionText.length > 20 ? '...' : ''}" için Google'da ara`, action: () => createNewTab(`https://www.google.com/search?q=${encodeURIComponent(params.selectionText)}`) });
+        items.push({ icon: 'fa-solid fa-copy', label: window.XenixaI18n.t('ctx_copy'), action: () => activeWebview && activeWebview.copy() });
+        const shortText = params.selectionText.slice(0, 20) + (params.selectionText.length > 20 ? '...' : '');
+        items.push({ icon: 'fa-solid fa-magnifying-glass', label: window.XenixaI18n.t('ctx_search_google') + ` ("${shortText}")`, action: () => createNewTab(`https://www.google.com/search?q=${encodeURIComponent(params.selectionText)}`) });
         items.push({ separator: true });
     }
 
     // Düzenlenebilir alan seçenekleri
     if (isEditable) {
         if (!hasText) {
-            items.push({ icon: 'fa-solid fa-clipboard', label: 'Yapıştır', action: () => activeWebview && activeWebview.paste() });
+            items.push({ icon: 'fa-solid fa-clipboard', label: window.XenixaI18n.t('ctx_paste'), action: () => activeWebview && activeWebview.paste() });
         } else {
-            items.push({ icon: 'fa-solid fa-scissors', label: 'Kes', action: () => activeWebview && activeWebview.cut() });
-            items.push({ icon: 'fa-solid fa-copy', label: 'Kopyala', action: () => activeWebview && activeWebview.copy() });
-            items.push({ icon: 'fa-solid fa-clipboard', label: 'Yapıştır', action: () => activeWebview && activeWebview.paste() });
+            items.push({ icon: 'fa-solid fa-scissors', label: window.XenixaI18n.t('ctx_cut'), action: () => activeWebview && activeWebview.cut() });
+            items.push({ icon: 'fa-solid fa-copy', label: window.XenixaI18n.t('ctx_copy'), action: () => activeWebview && activeWebview.copy() });
+            items.push({ icon: 'fa-solid fa-clipboard', label: window.XenixaI18n.t('ctx_paste'), action: () => activeWebview && activeWebview.paste() });
         }
         items.push({ separator: true });
     }
 
     // Genel seçenekler (her zaman göster)
     if (!hasLink && !hasImage && !hasText && !isEditable) {
-        items.push({ icon: 'fa-solid fa-arrow-left', label: 'Geri', action: () => activeWebview && activeWebview.goBack(), disabled: activeWebview && !activeWebview.canGoBack() });
-        items.push({ icon: 'fa-solid fa-arrow-right', label: 'İleri', action: () => activeWebview && activeWebview.goForward(), disabled: activeWebview && !activeWebview.canGoForward() });
-        items.push({ icon: 'fa-solid fa-rotate-right', label: 'Yenile', action: () => activeWebview && activeWebview.reload() });
+        items.push({ icon: 'fa-solid fa-arrow-left', label: window.XenixaI18n.t('ctx_back'), action: () => activeWebview && activeWebview.goBack(), disabled: activeWebview && !activeWebview.canGoBack() });
+        items.push({ icon: 'fa-solid fa-arrow-right', label: window.XenixaI18n.t('ctx_forward'), action: () => activeWebview && activeWebview.goForward(), disabled: activeWebview && !activeWebview.canGoForward() });
+        items.push({ icon: 'fa-solid fa-rotate-right', label: window.XenixaI18n.t('ctx_reload'), action: () => activeWebview && activeWebview.reload() });
         items.push({ separator: true });
-        items.push({ icon: 'fa-solid fa-floppy-disk', label: 'Sayfayı farklı kaydet...', action: () => activeWebview && activeWebview.getWebContentsId && ipcRenderer.send('save-page', activeWebview.getWebContentsId()) });
-        items.push({ icon: 'fa-solid fa-print', label: 'Yazdır...', action: () => activeWebview && activeWebview.print() });
+        items.push({ icon: 'fa-solid fa-floppy-disk', label: window.XenixaI18n.t('ctx_save_page_as'), action: () => activeWebview && activeWebview.getWebContentsId && ipcRenderer.send('save-page', activeWebview.getWebContentsId()) });
+        items.push({ icon: 'fa-solid fa-print', label: window.XenixaI18n.t('ctx_print'), action: () => activeWebview && activeWebview.print() });
         items.push({ separator: true });
     }
 
     // Sayfa kaynağı / geliştirici araçları
-    items.push({ icon: 'fa-solid fa-code', label: 'İncele', action: () => activeWebview && activeWebview.openDevTools() });
+    items.push({ icon: 'fa-solid fa-code', label: window.XenixaI18n.t('ctx_inspect'), action: () => activeWebview && activeWebview.openDevTools() });
 
     return items;
 }
@@ -396,21 +424,21 @@ function showTabContextMenu(x, y, tabId) {
 
     const items = [
         // Grup 1
-        { label: 'Sağa yeni sekme', action: () => { const i = tabs.findIndex(t => t.id === tabId); createNewTabAt(i + 1); } },
-        { label: 'Sekmeyi yeni pencereye taşı', action: () => popOutTab(tabId, x, y), disabled: tabs.length <= 1 },
+        { label: window.XenixaI18n.t('tab_new_tab_right'), action: () => { const i = tabs.findIndex(t => t.id === tabId); createNewTabAt(i + 1); } },
+        { label: window.XenixaI18n.t('tab_move_win'), action: () => popOutTab(tabId, x, y), disabled: tabs.length <= 1 },
         { separator: true },
         // Grup 2
-        { label: 'Yeniden Yükle', shortcut: 'Ctrl+R', action: () => { if (tab.webview) tab.webview.reload(); } },
-        { label: 'Sekmeyi Kopyala', action: () => createNewTab(tab.url) },
-        { label: isAudible && !isMuted ? 'Sekmenin sesini kapat' : 'Sekmenin sesini aç', action: () => toggleTabMute(tabId) },
+        { label: window.XenixaI18n.t('tab_reload'), shortcut: 'Ctrl+R', action: () => { reloadTab(tab); } },
+        { label: window.XenixaI18n.t('tab_duplicate'), action: () => createNewTab(tab.url) },
+        { label: isAudible && !isMuted ? window.XenixaI18n.t('tab_mute') : window.XenixaI18n.t('tab_unmute'), action: () => toggleTabMute(tabId) },
         { separator: true },
         // Grup 3
-        { label: 'Kapat', shortcut: 'Ctrl+W', action: () => closeTab(tabId) },
-        { label: 'Diğer sekmeleri kapat', action: () => closeOtherTabs(tabId), disabled: tabs.length <= 1 },
-        { label: 'Sağdaki sekmeleri kapat', action: () => closeTabsToRight(tabId), disabled: !hasRight },
+        { label: window.XenixaI18n.t('tab_close'), shortcut: 'Ctrl+W', action: () => closeTab(tabId) },
+        { label: window.XenixaI18n.t('tab_close_others'), action: () => closeOtherTabs(tabId), disabled: tabs.length <= 1 },
+        { label: window.XenixaI18n.t('tab_close_right'), action: () => closeTabsToRight(tabId), disabled: !hasRight },
         { separator: true },
         // Grup 4
-        { label: 'Kapatılan sekmeyi yeniden aç', action: () => reopenLastClosedTab(), disabled: !lastClosedTab },
+        { label: window.XenixaI18n.t('tab_reopen_closed'), action: () => reopenLastClosedTab(), disabled: !lastClosedTab },
     ];
 
     tabContextMenu.innerHTML = '';
@@ -559,12 +587,12 @@ function renderDownloadsPanel() {
     // Header
     const header = document.createElement('div');
     header.className = 'downloads-panel-header';
-    header.innerHTML = `<span class="downloads-panel-title">İndirilenler</span>`;
+    header.innerHTML = `<span class="downloads-panel-title">${window.XenixaI18n.t('downloads_title')}</span>`;
 
     if (downloads.length > 0) {
         const clearBtn = document.createElement('button');
         clearBtn.className = 'downloads-clear-btn';
-        clearBtn.textContent = 'Temizle';
+        clearBtn.textContent = window.XenixaI18n.t('downloads_clear');
         clearBtn.addEventListener('click', () => {
             downloads = downloads.filter(d => d.state === 'progressing');
             renderDownloadsPanel();
@@ -577,7 +605,7 @@ function renderDownloadsPanel() {
     if (downloads.length === 0) {
         const empty = document.createElement('div');
         empty.className = 'downloads-empty';
-        empty.innerHTML = '<i class="fa-solid fa-download" style="font-size:24px;display:block;margin-bottom:8px;color:#5f6368"></i>Henüz indirme yok';
+        empty.innerHTML = `<i class="fa-solid fa-download" style="font-size:24px;display:block;margin-bottom:8px;color:#5f6368"></i>${window.XenixaI18n.t('no_downloads')}`;
         downloadsPanel.appendChild(empty);
         return;
     }
@@ -607,23 +635,23 @@ function renderDownloadsPanel() {
             metaText = dl.totalBytes > 0
                 ? `${formatBytes(dl.receivedBytes)} / ${formatBytes(dl.totalBytes)} · ${formatSpeed(dl.speed)}`
                 : `${formatBytes(dl.receivedBytes)} · ${formatSpeed(dl.speed)}`;
-            if (dl.isPaused) metaText = 'Duraklatıldı · ' + formatBytes(dl.receivedBytes);
+            if (dl.isPaused) metaText = window.XenixaI18n.t('download_paused') + ' · ' + formatBytes(dl.receivedBytes);
         } else if (isDone) {
-            metaText = `${formatBytes(dl.totalBytes)} · Tamamlandı`;
+            metaText = `${formatBytes(dl.totalBytes)} · ${window.XenixaI18n.t('download_completed')}`;
         } else {
-            metaText = 'İptal edildi';
+            metaText = window.XenixaI18n.t('download_cancelled');
         }
 
         let actionsHtml = '';
         if (isActive) {
             if (dl.isPaused) {
-                actionsHtml += `<button class="download-action-btn" title="Devam et" onclick="resumeDownload('${dl.id}')"><i class="fa-solid fa-play"></i></button>`;
+                actionsHtml += `<button class="download-action-btn" title="${window.XenixaI18n.t('downloads_resume')}" onclick="resumeDownload('${dl.id}')"><i class="fa-solid fa-play"></i></button>`;
             } else {
-                actionsHtml += `<button class="download-action-btn" title="Duraklat" onclick="pauseDownload('${dl.id}')"><i class="fa-solid fa-pause"></i></button>`;
+                actionsHtml += `<button class="download-action-btn" title="${window.XenixaI18n.t('downloads_pause')}" onclick="pauseDownload('${dl.id}')"><i class="fa-solid fa-pause"></i></button>`;
             }
-            actionsHtml += `<button class="download-action-btn" title="İptal et" onclick="cancelDownload('${dl.id}')"><i class="fa-solid fa-xmark"></i></button>`;
+            actionsHtml += `<button class="download-action-btn" title="${window.XenixaI18n.t('downloads_cancel')}" onclick="cancelDownload('${dl.id}')"><i class="fa-solid fa-xmark"></i></button>`;
         } else if (isDone) {
-            actionsHtml += `<button class="download-action-btn" title="Klasörde göster" onclick="showInFolder('${dl.savePath.replace(/\\/g, '\\\\')}')"><i class="fa-solid fa-folder-open"></i></button>`;
+            actionsHtml += `<button class="download-action-btn" title="${window.XenixaI18n.t('show_in_folder')}" onclick="showInFolder('${dl.savePath.replace(/\\/g, '\\\\')}')"><i class="fa-solid fa-folder-open"></i></button>`;
         }
 
         item.innerHTML = `
@@ -1093,11 +1121,13 @@ function updateWarpUI() {
     // Durum metni
     if (warpTooltipStatus) {
         if (!warpInstalled) {
-            warpTooltipStatus.textContent = 'warp-cli bulunamadı. Cloudflare WARP uygulamasını yükleyin.';
+            warpTooltipStatus.textContent = window.XenixaI18n.currentLang === 'tr' ? 'warp-cli bulunamadı. Cloudflare WARP uygulamasını yükleyin.' :
+                                            window.XenixaI18n.currentLang === 'ru' ? 'warp-cli не найден. Установите приложение Cloudflare WARP.' :
+                                            'warp-cli not found. Please install Cloudflare WARP.';
         } else if (warpConnected) {
-            warpTooltipStatus.textContent = 'Bağlı — Cloudflare WARP aktif';
+            warpTooltipStatus.textContent = window.XenixaI18n.t('warp_connected');
         } else {
-            warpTooltipStatus.textContent = 'Bağlı değil';
+            warpTooltipStatus.textContent = window.XenixaI18n.t('warp_disconnected');
         }
     }
 
@@ -1105,10 +1135,10 @@ function updateWarpUI() {
     if (warpToggleBtn) {
         warpToggleBtn.disabled = !warpInstalled;
         if (warpConnected) {
-            warpToggleBtn.textContent = 'Bağlantıyı Kes';
+            warpToggleBtn.textContent = window.XenixaI18n.t('warp_disconnect');
             warpToggleBtn.className = 'warp-toggle-btn disconnect';
         } else {
-            warpToggleBtn.textContent = 'Bağlan';
+            warpToggleBtn.textContent = window.XenixaI18n.t('warp_connect');
             warpToggleBtn.className = 'warp-toggle-btn';
         }
     }
@@ -1149,7 +1179,11 @@ function setupWarpEvents() {
             warpToggleBtn.disabled = true;
             warpBtn.classList.add('connecting');
             if (warpStatusDot) warpStatusDot.className = 'warp-status-dot connecting';
-            if (warpTooltipStatus) warpTooltipStatus.textContent = warpConnected ? 'Bağlantı kesiliyor...' : 'Bağlanıyor...';
+            if (warpTooltipStatus) {
+                warpTooltipStatus.textContent = window.XenixaI18n.currentLang === 'tr' ? (warpConnected ? 'Bağlantı kesiliyor...' : 'Bağlanıyor...') :
+                                                window.XenixaI18n.currentLang === 'ru' ? (warpConnected ? 'Отключение...' : 'Подключение...') :
+                                                (warpConnected ? 'Disconnecting...' : 'Connecting...');
+            }
 
             try {
                 if (warpConnected) {
@@ -1203,11 +1237,13 @@ function updateTorUI() {
     // Durum metni
     if (torTooltipStatus) {
         if (!torInstalled) {
-            torTooltipStatus.textContent = 'tor.exe bulunamadı. Ayarlar sayfasından Tor konumunu doğrulayın.';
+            torTooltipStatus.textContent = window.XenixaI18n.currentLang === 'tr' ? 'tor.exe bulunamadı. Ayarlar sayfasından Tor konumunu doğrulayın.' :
+                                            window.XenixaI18n.currentLang === 'ru' ? 'tor.exe не найден. Проверьте путь к Tor на странице настроек.' :
+                                            'tor.exe not found. Please verify the Tor path in Settings.';
         } else if (torConnected) {
-            torTooltipStatus.textContent = 'Bağlı — Tor Ağı aktif';
+            torTooltipStatus.textContent = window.XenixaI18n.t('tor_connected');
         } else {
-            torTooltipStatus.textContent = 'Bağlı değil';
+            torTooltipStatus.textContent = window.XenixaI18n.t('tor_disconnected');
         }
     }
 
@@ -1215,7 +1251,7 @@ function updateTorUI() {
     if (torToggleBtn) {
         torToggleBtn.disabled = !torInstalled;
         if (torConnected) {
-            torToggleBtn.textContent = 'Bağlantıyı Kes';
+            torToggleBtn.textContent = window.XenixaI18n.t('tor_disconnect');
             torToggleBtn.className = 'tor-toggle-btn disconnect';
         } else {
             torToggleBtn.textContent = 'Bağlan';
@@ -1259,7 +1295,11 @@ function setupTorEvents() {
             torToggleBtn.disabled = true;
             torBtn.classList.add('connecting');
             if (torStatusDot) torStatusDot.className = 'tor-status-dot connecting';
-            if (torTooltipStatus) torTooltipStatus.textContent = torConnected ? 'Bağlantı kesiliyor...' : 'Bağlanıyor...';
+            if (torTooltipStatus) {
+                torTooltipStatus.textContent = window.XenixaI18n.currentLang === 'tr' ? (torConnected ? 'Bağlantı kesiliyor...' : 'Bağlanıyor...') :
+                                                window.XenixaI18n.currentLang === 'ru' ? (torConnected ? 'Отключение...' : 'Подключение...') :
+                                                (torConnected ? 'Disconnecting...' : 'Connecting...');
+            }
 
             try {
                 if (torConnected) {
@@ -1319,6 +1359,9 @@ function init() {
     if (backBtn) backBtn.disabled = true;
     if (forwardBtn) forwardBtn.disabled = true;
     restoreOpenTabs();
+    
+    // Onboarding tooltip'ini göster
+    setTimeout(showNewTabTooltip, 800);
 }
 
 function loadHistoryAndPersistence() {
@@ -1365,6 +1408,19 @@ function addToSearchHistory(query) {
     localStorage.setItem('xenixa_history', JSON.stringify(searchHistory));
 }
 
+let saveVisitedTimeout = null;
+function saveVisitedTabsDeferred() {
+    if (saveVisitedTimeout) clearTimeout(saveVisitedTimeout);
+    saveVisitedTimeout = setTimeout(() => {
+        try {
+            localStorage.setItem('xenixa_visited_tabs', JSON.stringify(visitedTabs));
+            localStorage.setItem('xenixa_visit_counts', JSON.stringify(siteVisitCounts));
+        } catch (e) {
+            console.error("Failed to save visited tabs:", e);
+        }
+    }, 500);
+}
+
 function addToVisitedTabs(title, url) {
     if (!url || url === 'about:blank') return;
     if (isSpecialPage(url)) return; // xenixa:// sayfalarını kaydetme
@@ -1372,7 +1428,6 @@ function addToVisitedTabs(title, url) {
 
     // Ziyaret sayacını artır
     siteVisitCounts[url] = (siteVisitCounts[url] || 0) + 1;
-    localStorage.setItem('xenixa_visit_counts', JSON.stringify(siteVisitCounts));
 
     // Çift kayıtları önle
     visitedTabs = visitedTabs.filter(t => t.url !== url);
@@ -1383,20 +1438,28 @@ function addToVisitedTabs(title, url) {
         visitedTabs.pop();
     }
 
-    localStorage.setItem('xenixa_visited_tabs', JSON.stringify(visitedTabs));
+    saveVisitedTabsDeferred();
 }
 
+let saveOpenTabsTimeout = null;
 function saveOpenTabsState() {
-    const tabsToSave = tabs
-        .filter(t => !isSpecialPage(t.url)) // özel sayfaları kaydetme
-        .map(t => ({
-            id: t.id,
-            url: t.url,
-            title: t.title,
-            favicon: t.favicon
-        }));
-    localStorage.setItem('xenixa_open_tabs', JSON.stringify(tabsToSave));
-    localStorage.setItem('xenixa_active_tab_id', activeTabId);
+    if (saveOpenTabsTimeout) clearTimeout(saveOpenTabsTimeout);
+    saveOpenTabsTimeout = setTimeout(() => {
+        try {
+            const tabsToSave = tabs
+                .filter(t => !isSpecialPage(t.url)) // özel sayfaları kaydetme
+                .map(t => ({
+                    id: t.id,
+                    url: t.url,
+                    title: t.title,
+                    favicon: t.favicon
+                }));
+            localStorage.setItem('xenixa_open_tabs', JSON.stringify(tabsToSave));
+            localStorage.setItem('xenixa_active_tab_id', activeTabId);
+        } catch (e) {
+            console.error("Failed to save open tabs state:", e);
+        }
+    }, 200);
 }
 
 function restoreOpenTabs() {
@@ -1483,6 +1546,7 @@ function showWelcomeScreen() {
     applyWelcomeBg();
     applyWelcomeLogoVisibility();
     applyWelcomeSearchBoxVisibility();
+    applyWelcomeAdBlockStatsVisibility();
 }
 
 // ── Anasayfa Ayarları ─────────────────────────────────────────────────────────
@@ -1507,6 +1571,13 @@ function applyWelcomeSearchBoxVisibility() {
     if (!searchWrap) return;
     const hidden = localStorage.getItem('xenixa_searchbox_hidden') === '1';
     searchWrap.style.display = hidden ? 'none' : '';
+}
+
+function applyWelcomeAdBlockStatsVisibility() {
+    const statsEl = document.getElementById('welcomeAdBlockStats');
+    if (!statsEl) return;
+    const hidden = localStorage.getItem('xenixa_adblock_stats_hidden') === '1';
+    statsEl.style.display = hidden ? 'none' : 'flex';
 }
 
 // ── Marka ayarları (logo + isim) ──────────────────────────────────────────────
@@ -1630,6 +1701,9 @@ function openWelcomeModal() {
 
     const searchBoxShowToggle = document.getElementById('searchBoxShowToggle');
     if (searchBoxShowToggle) searchBoxShowToggle.checked = localStorage.getItem('xenixa_searchbox_hidden') !== '1';
+
+    const adblockStatsShowToggle = document.getElementById('adblockStatsShowToggle');
+    if (adblockStatsShowToggle) adblockStatsShowToggle.checked = localStorage.getItem('xenixa_adblock_stats_hidden') !== '1';
 
     // Video ses toggle — sadece video varsa göster
     const videoSoundRow = document.getElementById('videoSoundRow');
@@ -1879,6 +1953,7 @@ function initWelcomeSettings() {
     // Sayfa yüklenince kayıtlı tercihleri uygula
     applyWelcomeLogoVisibility();
     applyWelcomeSearchBoxVisibility();
+    applyWelcomeAdBlockStatsVisibility();
     applyBrandSettings();
 
     if (settingsBtn) settingsBtn.addEventListener('click', (e) => { e.stopPropagation(); openWelcomeModal(); });
@@ -2013,6 +2088,15 @@ function initWelcomeSettings() {
         });
     }
 
+    // Reklam engelleme sayacı göster/gizle toggle
+    const adblockStatsShowToggle = document.getElementById('adblockStatsShowToggle');
+    if (adblockStatsShowToggle) {
+        adblockStatsShowToggle.addEventListener('change', () => {
+            localStorage.setItem('xenixa_adblock_stats_hidden', adblockStatsShowToggle.checked ? '0' : '1');
+            applyWelcomeAdBlockStatsVisibility();
+        });
+    }
+
     // ── Marka sekmesi ─────────────────────────────────────────────────────────
     const brandLogoInput = document.getElementById('brandLogoInput');
     const brandLogoUploadBtn = document.getElementById('brandLogoUploadBtn');
@@ -2144,6 +2228,10 @@ function setupSingleWebviewEvents(tab) {
     if (!webview) return;
 
     webview.addEventListener('did-start-loading', () => {
+        tab.blockedAdsCount = 0;
+        if (activeTabId === tab.id) {
+            updateBlockedAdsUI();
+        }
         if (tab.url === 'about:blank') return;
         tab.loading = true;
         if (activeTabId === tab.id) {
@@ -2200,6 +2288,9 @@ function setupSingleWebviewEvents(tab) {
         }
 
         tab.url = event.url;
+        if (tab.nativeId) {
+            ipcRenderer.invoke('native-navigate', { tabId: tab.nativeId, url: event.url }).catch(() => {});
+        }
         if (activeTabId === tab.id) {
             urlBar.value = event.url;
             hideWelcomeScreen();
@@ -2336,6 +2427,36 @@ function setupEventListeners() {
             const tab = tabs.find(t => t.id === activeTabId);
             if (tab && tab.webview) {
                 try { tab.webview.showCertificateViewer(); } catch(_e) {}
+            }
+        });
+    }
+    const clearCookiesBtn = document.getElementById('clearCookiesBtn');
+    if (clearCookiesBtn) {
+        clearCookiesBtn.addEventListener('click', () => {
+            const tab = tabs.find(t => t.id === activeTabId);
+            if (tab && tab.url && tab.url.startsWith('http')) {
+                try {
+                    const origin = new URL(tab.url).origin;
+                    if (confirm(window.XenixaI18n.t('clear_site_cookies_confirm', { origin }))) {
+                        ipcRenderer.invoke('clear-site-cookies', origin).then(result => {
+                            if (result && result.success) {
+                                alert(window.XenixaI18n.t('clear_site_cookies_success'));
+                                hideSiteInfoPanel();
+                                if (tab.webview) tab.webview.reload();
+                            } else {
+                                const errMsg = result ? result.error : (window.XenixaI18n.currentLang === 'tr' ? 'Bilinmeyen hata' : window.XenixaI18n.currentLang === 'ru' ? 'Неизвестная ошибка' : 'Unknown error');
+                                alert(window.XenixaI18n.t('clear_site_cookies_error', { error: errMsg }));
+                            }
+                        }).catch(err => {
+                            const prefix = window.XenixaI18n.currentLang === 'tr' ? 'Hata: ' : window.XenixaI18n.currentLang === 'ru' ? 'Ошибка: ' : 'Error: ';
+                            alert(prefix + err.message);
+                        });
+                    }
+                } catch (e) {
+                    alert('Hata: ' + e.message);
+                }
+            } else {
+                alert('Bu sayfa için temizlenecek çerez/veri bulunmuyor.');
             }
         });
     }
@@ -2630,7 +2751,7 @@ function setupEventListeners() {
         try { if (activeWebview && typeof activeWebview.canGoForward === 'function' && activeWebview.canGoForward()) activeWebview.goForward(); } catch(_e) {}
     });
     refreshBtn.addEventListener('click', () => {
-        if (activeWebview) activeWebview.reload();
+        reloadTab(tabs.find(t => t.id === activeTabId));
     });
     homeBtn.addEventListener('click', () => navigateToUrl('about:blank'));
 
@@ -2734,12 +2855,12 @@ function handleShortcut(e) {
         // Ctrl+R / F5 — yenile
         if ((e.ctrlKey && e.key === 'r') || e.key === 'F5') {
             if (e.preventDefault) e.preventDefault();
-            try { if (activeWebview) activeWebview.reload(); } catch(_e) {}
+            try { reloadTab(tabs.find(t => t.id === activeTabId)); } catch(_e) {}
         }
         // Ctrl+Shift+R — önbelleği temizleyerek yenile
         if (e.ctrlKey && e.shiftKey && e.key === 'R') {
             if (e.preventDefault) e.preventDefault();
-            try { if (activeWebview) activeWebview.reloadIgnoringCache(); } catch(_e) {}
+            try { reloadTab(tabs.find(t => t.id === activeTabId), true); } catch(_e) {}
         }
         // Ctrl+F — sayfada ara
         if (e.ctrlKey && e.key === 'f') {
@@ -2862,7 +2983,8 @@ function createNewTab(initialUrl = 'about:blank') {
         webview: null,
         isSpecial: isSpecialPage(initialUrl),
         permissionRequests: [],
-        activeDialog: null
+        activeDialog: null,
+        blockedAdsCount: 0
     };
 
     const webview = document.createElement('webview');
@@ -2885,6 +3007,10 @@ function createNewTab(initialUrl = 'about:blank') {
 
     tabs.push(newTab);
     activeTabId = newTab.id;
+
+    ipcRenderer.invoke('native-create-tab', initialUrl).then(nativeTab => {
+        newTab.nativeId = nativeTab ? nativeTab.id : null;
+    }).catch(err => console.error('Failed to register tab with C++ engine:', err));
 
     switchTab(newTab.id);
 
@@ -3289,12 +3415,21 @@ function updateNavButtons() {
     }
 }
 
+function getSpecialPageTitle(url) {
+    if (url === 'xenixa://history') return window.XenixaI18n.t('history');
+    if (url === 'xenixa://downloads') return window.XenixaI18n.t('downloads_title');
+    if (url === 'xenixa://settings') return window.XenixaI18n.t('settings');
+    if (url === 'xenixa://bookmarks') return window.XenixaI18n.t('bookmarks_title');
+    if (url === 'xenixa://permission-test') return window.XenixaI18n.t('permission_test');
+    return getAppName();
+}
+
 function updateWindowTitle(tab) {
     const appName = getAppName();
     if (!tab || tab.url === 'about:blank') {
         document.title = appName;
     } else if (isSpecialPage(tab.url)) {
-        document.title = `${appName} — ${SPECIAL_PAGE_TITLES[tab.url] || 'Sayfa'}`;
+        document.title = `${appName} — ${getSpecialPageTitle(tab.url)}`;
     } else {
         try {
             const pageTitle = tab.title && tab.title !== tab.url ? tab.title : new URL(tab.url).hostname;
@@ -3366,6 +3501,7 @@ function switchTab(tabId) {
     updateNavButtons();
     updateSecurityIcon(tab ? tab.url : '');
     updateBookmarkButton();
+    updateBlockedAdsUI();
     // Sekme değişince find bar'ı kapat
     if (findActive) closeFindBar();
     updateDialogUI();
@@ -3402,6 +3538,9 @@ function _closeTabImmediate(tabId) {
     if (tabIndex === -1) return;
 
     const tab = tabs[tabIndex];
+    if (tab.nativeId) {
+        ipcRenderer.invoke('native-close-tab', tab.nativeId).catch(() => {});
+    }
     cleanupTabState(tab);
     // Kapatılan sekmeyi kaydet (yeniden aç için) — özel sayfaları kaydetme
     if (tab.url && tab.url !== 'about:blank' && !isSpecialPage(tab.url)) {
@@ -3577,13 +3716,13 @@ function renderMenuDropdown() {
     const group1 = [
         {
             icon: 'fa-solid fa-plus',
-            label: 'Yeni sekme',
+            label: window.XenixaI18n.t('menu_new_tab'),
             shortcut: 'Ctrl+T',
             action: () => createNewTab()
         },
         {
             icon: 'fa-solid fa-window-maximize',
-            label: 'Yeni pencere',
+            label: window.XenixaI18n.t('menu_new_window'),
             shortcut: 'Ctrl+N',
             action: () => ipcRenderer.send('open-new-window', { url: 'about:blank' })
         },
@@ -3593,31 +3732,31 @@ function renderMenuDropdown() {
     const group2 = [
         {
             icon: 'fa-solid fa-clock-rotate-left',
-            label: 'Geçmiş',
+            label: window.XenixaI18n.t('history'),
             action: () => openSpecialPage('xenixa://history')
         },
         {
             icon: 'fa-solid fa-bookmark',
-            label: 'Yer işaretleri ve listeler',
+            label: window.XenixaI18n.t('menu_bookmarks'),
             action: () => openSpecialPage('xenixa://bookmarks')
         },
         {
             icon: 'fa-solid fa-circle-down',
-            label: 'İndirilenler',
+            label: window.XenixaI18n.t('downloads_title'),
             shortcut: 'Ctrl+J',
             action: () => openSpecialPage('xenixa://downloads')
         },
         {
             icon: 'fa-solid fa-puzzle-piece',
-            label: 'Uzantılar',
+            label: window.XenixaI18n.t('menu_extensions'),
             action: null
         },
         {
             icon: 'fa-solid fa-trash-can',
-            label: 'Tarama verilerini sil',
+            label: window.XenixaI18n.t('menu_clear_data'),
             shortcut: 'Ctrl+Shift+Del',
             action: () => {
-                if (confirm('Tüm tarama geçmişi, ziyaret sayıları ve arama geçmişi silinecek. Devam edilsin mi?')) {
+                if (confirm(window.XenixaI18n.t('clear_data_confirm'))) {
                     visitedTabs = [];
                     siteVisitCounts = {};
                     searchHistory = [];
@@ -3637,23 +3776,23 @@ function renderMenuDropdown() {
     const group4 = [
         {
             icon: 'fa-solid fa-print',
-            label: 'Yazdır...',
+            label: window.XenixaI18n.t('ctx_print'),
             shortcut: 'Ctrl+P',
             action: () => activeWebview && activeWebview.print()
         },
         {
             icon: 'fa-solid fa-magnifying-glass',
-            label: 'Bul ve düzenle',
+            label: window.XenixaI18n.t('menu_find'),
             action: null
         },
         {
             icon: 'fa-solid fa-floppy-disk',
-            label: 'Kaydet ve paylaş',
+            label: window.XenixaI18n.t('menu_save_share'),
             action: null
         },
         {
             icon: 'fa-solid fa-wrench',
-            label: 'Diğer araçlar',
+            label: window.XenixaI18n.t('menu_more_tools'),
             action: null
         },
     ];
@@ -3662,22 +3801,22 @@ function renderMenuDropdown() {
     const group5 = [
         {
             icon: 'fa-solid fa-circle-question',
-            label: 'Yardım',
+            label: window.XenixaI18n.t('menu_help'),
             action: null
         },
         {
             icon: 'fa-solid fa-gear',
-            label: 'Ayarlar',
+            label: window.XenixaI18n.t('settings'),
             action: () => openSpecialPage('xenixa://settings')
         },
         {
             icon: 'fa-solid fa-shield-halved',
-            label: 'İzin Testi',
+            label: window.XenixaI18n.t('permission_test'),
             action: () => openSpecialPage('xenixa://permission-test')
         },
         {
             icon: 'fa-solid fa-xmark',
-            label: 'Çıkış',
+            label: window.XenixaI18n.t('menu_exit'),
             action: () => ipcRenderer.send('window-close')
         },
     ];
@@ -3720,13 +3859,13 @@ function renderMenuDropdown() {
     zoomRow.innerHTML = `
         <i class="fa-solid fa-magnifying-glass-plus"></i>
         <div class="menu-item-content">
-            <span class="menu-item-text">Yakınlaştır</span>
+            <span class="menu-item-text">${window.XenixaI18n.t('menu_zoom')}</span>
         </div>
         <div class="menu-zoom-controls">
-            <button class="menu-zoom-btn" id="menuZoomOut" title="Uzaklaştır">−</button>
+            <button class="menu-zoom-btn" id="menuZoomOut" title="${window.XenixaI18n.t('menu_zoom_out')}">−</button>
             <span class="menu-zoom-level" id="menuZoomLevel">${zoomPct}%</span>
-            <button class="menu-zoom-btn" id="menuZoomIn" title="Yakınlaştır">+</button>
-            <button class="menu-zoom-btn menu-zoom-fullscreen" id="menuFullscreen" title="Tam ekran">
+            <button class="menu-zoom-btn" id="menuZoomIn" title="${window.XenixaI18n.t('menu_zoom_in')}">+</button>
+            <button class="menu-zoom-btn menu-zoom-fullscreen" id="menuFullscreen" title="${window.XenixaI18n.t('menu_fullscreen')}">
                 <i class="fa-solid fa-expand"></i>
             </button>
         </div>
@@ -3819,6 +3958,87 @@ ipcRenderer.on('downloads-clear-all', () => {
 // IPC: Özel sayfa — URL'yi aktif sekmede aç
 ipcRenderer.on('open-url-in-active-tab', (event, url) => {
     navigateToUrl(url);
+});
+
+// IPC: Reklam engellendi bildirimi
+ipcRenderer.on('ad-blocked', (event, url) => {
+    const activeTab = tabs.find(t => t.id === activeTabId);
+    if (activeTab) {
+        activeTab.blockedAdsCount = (activeTab.blockedAdsCount || 0) + 1;
+        updateBlockedAdsUI();
+    }
+    
+    // Toplam engellenen reklam sayısını artır ve kaydet
+    try {
+        let totalBlocked = parseInt(localStorage.getItem('xenixa_total_blocked_ads') || '0', 10);
+        totalBlocked += 1;
+        localStorage.setItem('xenixa_total_blocked_ads', totalBlocked.toString());
+        updateWelcomeAdBlockStats();
+    } catch (e) {}
+});
+
+// IPC: Özel arama motorları güncellendi bildirimi
+ipcRenderer.on('search-engines-updated', () => {
+    updateSearchEngineUI();
+});
+
+// IPC: Dil değişti bildirimi
+ipcRenderer.on('language-changed', (event, lang) => {
+    window.XenixaI18n.setLanguage(lang);
+    
+    // Webview'ları bilgilendir veya yenile (özel sayfalar için)
+    tabs.forEach(t => {
+        if (t.webview && !t.webview.isDestroyed() && isSpecialPage(t.url)) {
+            try {
+                t.webview.reload();
+            } catch (e) {}
+        }
+    });
+    
+    // Ana pencere UI'sini dille güncelle
+    updateSearchEngineUI();
+    updateBlockedAdsUI();
+    updateWelcomeAdBlockStats();
+    renderTabs();
+    
+    // Tooltip durum metinlerini güncelle
+    const warpStatusDot = document.getElementById('warpStatusDot');
+    const warpTooltipStatus = document.getElementById('warpTooltipStatus');
+    const warpToggleBtn = document.getElementById('warpToggleBtn');
+    if (warpTooltipStatus) {
+        const warpInstalled = !!(warpToggleBtn && !warpToggleBtn.disabled);
+        const warpConnected = !!(warpStatusDot && warpStatusDot.classList.contains('connected'));
+        if (!warpInstalled) {
+            warpTooltipStatus.textContent = window.XenixaI18n.currentLang === 'tr' ? 'warp-cli bulunamadı. Cloudflare WARP uygulamasını yükleyin.' :
+                                            window.XenixaI18n.currentLang === 'ru' ? 'warp-cli не найден. Установите приложение Cloudflare WARP.' :
+                                            'warp-cli not found. Please install Cloudflare WARP.';
+        } else if (warpConnected) {
+            warpTooltipStatus.textContent = window.XenixaI18n.t('warp_connected');
+            if (warpToggleBtn) warpToggleBtn.textContent = window.XenixaI18n.t('warp_disconnect');
+        } else {
+            warpTooltipStatus.textContent = window.XenixaI18n.t('warp_disconnected');
+            if (warpToggleBtn) warpToggleBtn.textContent = window.XenixaI18n.t('warp_connect');
+        }
+    }
+    
+    const torStatusDot = document.getElementById('torStatusDot');
+    const torTooltipStatus = document.getElementById('torTooltipStatus');
+    const torToggleBtn = document.getElementById('torToggleBtn');
+    if (torTooltipStatus) {
+        const torInstalled = !!(torToggleBtn && !torToggleBtn.disabled);
+        const torConnected = !!(torStatusDot && torStatusDot.classList.contains('connected'));
+        if (!torInstalled) {
+            torTooltipStatus.textContent = window.XenixaI18n.currentLang === 'tr' ? 'tor.exe bulunamadı. Ayarlar sayfasından Tor konumunu doğrulayın.' :
+                                            window.XenixaI18n.currentLang === 'ru' ? 'tor.exe не найден. Проверьте путь к Tor на странице настроек.' :
+                                            'tor.exe not found. Please verify the Tor path in Settings.';
+        } else if (torConnected) {
+            torTooltipStatus.textContent = window.XenixaI18n.t('tor_connected');
+            if (torToggleBtn) torToggleBtn.textContent = window.XenixaI18n.t('tor_disconnect');
+        } else {
+            torTooltipStatus.textContent = window.XenixaI18n.t('tor_disconnected');
+            if (torToggleBtn) torToggleBtn.textContent = window.XenixaI18n.t('tor_connect');
+        }
+    }
 });
 
 // IPC: İndirme event'leri
@@ -4117,6 +4337,7 @@ function updateDialogUI() {
 
         iconWrap.className = 'custom-dialog-icon-wrap';
         icon.className = 'fa-solid';
+        iconWrap.style.display = 'flex';
         inputEl.style.display = 'none';
         cancelBtn.style.display = 'none';
 
@@ -4125,8 +4346,7 @@ function updateDialogUI() {
             icon.classList.add('fa-circle-exclamation');
             okBtn.textContent = 'Tamam';
         } else if (type === 'confirm') {
-            iconWrap.classList.add('type-confirm');
-            icon.classList.add('fa-circle-question');
+            iconWrap.style.display = 'none';
             cancelBtn.style.display = 'block';
             cancelBtn.textContent = 'İptal';
             okBtn.textContent = 'Onayla';
@@ -4464,4 +4684,142 @@ ipcRenderer.on('webview-dialog-request', (event, { id, type, message, defaultVal
     };
     updateDialogUI();
 });
+
+// IPC: Şifre kaydetme önerisi yakalayıcı
+ipcRenderer.on('suggest-save-password', (event, entry) => {
+    activeSystemDialog = {
+        type: 'confirm',
+        url: entry.origin,
+        message: `Bu sitenin giriş bilgilerini (${entry.username}) kaydetmek ister misiniz?`,
+        controller: {
+            accept: () => {
+                ipcRenderer.invoke('save-password', entry).then(() => {
+                    console.log('Password saved successfully via IPC');
+                }).catch(err => console.error('Failed to save password:', err));
+            },
+            cancel: () => {
+                console.log('Password save cancelled.');
+            }
+        }
+    };
+    updateDialogUI();
+});
+
+// IPC: Şifreler güncellendiğinde tüm webview'lara yayınla
+ipcRenderer.on('passwords-updated', () => {
+    tabs.forEach(t => {
+        if (t.webview && !t.webview.isDestroyed()) {
+            try { t.webview.send('passwords-updated'); } catch(_e) {}
+        }
+    });
+});
+
+// ── Reklam Engelleyici Arayüz Güncelleme Fonksiyonu ─────────────────────────
+function updateBlockedAdsUI() {
+    const activeTab = tabs.find(t => t.id === activeTabId);
+    const badge = document.getElementById('adblockBadgeBtn');
+    const badgeCount = document.getElementById('adblockBadgeCount');
+    const panelLabel = document.getElementById('siteInfoAdBlockLabel');
+
+    if (activeTab && activeTab.blockedAdsCount > 0 && !activeTab.isSpecial && activeTab.url !== 'about:blank') {
+        if (badge) {
+            badge.style.display = 'flex';
+        }
+        if (badgeCount) {
+            badgeCount.textContent = activeTab.blockedAdsCount;
+        }
+        if (panelLabel) {
+            panelLabel.textContent = `${activeTab.blockedAdsCount} reklam engellendi`;
+        }
+    } else {
+        if (badge) {
+            badge.style.display = 'none';
+        }
+        if (panelLabel) {
+            panelLabel.textContent = '0 reklam engellendi';
+        }
+    }
+}
+
+function updateWelcomeAdBlockStats() {
+    const textEl = document.getElementById('welcomeAdBlockCountText');
+    if (textEl) {
+        const totalBlocked = parseInt(localStorage.getItem('xenixa_total_blocked_ads') || '0', 10);
+        textEl.textContent = window.XenixaI18n.t('total_ads_blocked', { count: totalBlocked });
+    }
+}
+
+// Initial call
+updateWelcomeAdBlockStats();
+
+function showNewTabTooltip() {
+    if (localStorage.getItem('xenixa_hide_new_tab_tooltip') === '1') {
+        return;
+    }
+
+    const newTabBtn = document.getElementById('newTabBtn');
+    if (!newTabBtn) return;
+
+    // Tooltip elementini oluştur
+    const tooltip = document.createElement('div');
+    tooltip.id = 'newTabTooltip';
+    tooltip.className = 'new-tab-tooltip';
+    tooltip.innerHTML = `
+        <div class="new-tab-tooltip-content">
+            Yeni sekme oluşturmak için bu butonu kullanabilirsiniz.
+        </div>
+        <div class="new-tab-tooltip-footer">
+            <button id="newTabTooltipDontShow" class="new-tab-tooltip-btn secondary">Bir Daha Gösterme</button>
+            <button id="newTabTooltipClose" class="new-tab-tooltip-btn primary">Kapat</button>
+        </div>
+        <div class="new-tab-tooltip-arrow"></div>
+    `;
+
+    document.body.appendChild(tooltip);
+
+    // Konumlandırma fonksiyonu
+    function updateTooltipPosition() {
+        const btnRect = newTabBtn.getBoundingClientRect();
+        if (btnRect.width === 0 || btnRect.height === 0) return;
+
+        const tooltipWidth = tooltip.offsetWidth || 250;
+        const left = btnRect.left + (btnRect.width / 2) - (tooltipWidth / 2);
+        const top = btnRect.bottom + 8;
+
+        const maxLeft = window.innerWidth - tooltipWidth - 12;
+        const finalLeft = Math.max(12, Math.min(maxLeft, left));
+
+        tooltip.style.left = `${finalLeft}px`;
+        tooltip.style.top = `${top}px`;
+
+        const arrow = tooltip.querySelector('.new-tab-tooltip-arrow');
+        if (arrow) {
+            const offset = (btnRect.left + (btnRect.width / 2)) - finalLeft;
+            arrow.style.left = `${offset - 5}px`; // 5px is half the arrow width (10px) to center it
+        }
+    }
+
+    // Ölçüm yap ve göster
+    requestAnimationFrame(() => {
+        updateTooltipPosition();
+        tooltip.classList.add('visible');
+    });
+
+    const closeTooltip = () => {
+        tooltip.classList.remove('visible');
+        setTimeout(() => tooltip.remove(), 250);
+        window.removeEventListener('resize', updateTooltipPosition);
+    };
+
+    document.getElementById('newTabTooltipClose').addEventListener('click', closeTooltip);
+    document.getElementById('newTabTooltipDontShow').addEventListener('click', () => {
+        localStorage.setItem('xenixa_hide_new_tab_tooltip', '1');
+        closeTooltip();
+    });
+
+    window.addEventListener('resize', updateTooltipPosition);
+
+    // Sekme açma butonuna basılırsa otomatik kapat
+    newTabBtn.addEventListener('click', closeTooltip);
+}
 

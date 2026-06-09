@@ -153,3 +153,102 @@ if (navigator.permissions && navigator.permissions.query) {
         return originalQuery.call(navigator.permissions, descriptor);
     };
 }
+
+// ── Şifre Yöneticisi Otomatik Doldurma ve Kaydetme Dinleyicileri ───────────────
+window.addEventListener('DOMContentLoaded', () => {
+    // Sadece http/https sayfalarında çalıştır
+    if (!window.location.protocol.startsWith('http')) return;
+
+    const origin = window.location.origin;
+
+    // 1. Şifreleri çek ve otomatik doldur
+    ipcRenderer.invoke('get-passwords').then(passwords => {
+        const matches = passwords.filter(p => p.origin === origin);
+        if (matches.length > 0) {
+            // Şifre alanlarını bul
+            const passwordInputs = document.querySelectorAll('input[type="password"]');
+            if (passwordInputs.length > 0) {
+                const entry = matches[0];
+                passwordInputs.forEach(passInput => {
+                    passInput.value = entry.password;
+                    // Kullanıcı adı alanını bul
+                    const form = passInput.form;
+                    if (form) {
+                        const userInput = form.querySelector('input[type="text"], input[type="email"], input:not([type])');
+                        if (userInput) {
+                            userInput.value = entry.username;
+                        }
+                    }
+                });
+            }
+        }
+    }).catch(err => console.log('[Autofill] No saved passwords or error:', err));
+    // 2. Şifre ve kullanıcı adını form etkileşimi sırasında anlık olarak takip et (AJAX/Custom formlarda dahi güvenli yakalama için)
+    let lastTypedUsername = '';
+    let lastTypedPassword = '';
+
+    function findUsernameInput(form, passwordInput) {
+        if (!form || !passwordInput) return null;
+        const inputs = Array.from(form.querySelectorAll('input'));
+        const passIdx = inputs.indexOf(passwordInput);
+        if (passIdx > 0) {
+            for (let i = passIdx - 1; i >= 0; i--) {
+                const input = inputs[i];
+                const type = (input.getAttribute('type') || 'text').toLowerCase();
+                if (['text', 'email', 'tel', 'number'].includes(type) && !input.disabled) {
+                    return input;
+                }
+            }
+        }
+        return form.querySelector('input[type="text"], input[type="email"], input[type="tel"], input:not([type])');
+    }
+
+    document.addEventListener('input', (event) => {
+        const target = event.target;
+        if (target.tagName === 'INPUT') {
+            const form = target.form;
+            if (form) {
+                const passwordInput = form.querySelector('input[type="password"]');
+                if (passwordInput) {
+                    lastTypedPassword = passwordInput.value;
+                    const userInput = findUsernameInput(form, passwordInput);
+                    if (userInput) {
+                        lastTypedUsername = userInput.value.trim();
+                    }
+                }
+            }
+        }
+    });
+
+    function handlePossibleSubmit(form) {
+        const passwordInput = form.querySelector('input[type="password"]');
+        if (passwordInput && passwordInput.value) {
+            const userInput = findUsernameInput(form, passwordInput);
+            const username = userInput ? userInput.value.trim() : lastTypedUsername;
+            const password = passwordInput.value || lastTypedPassword;
+
+            if (username && password) {
+                ipcRenderer.send('suggest-save-password', {
+                    origin,
+                    username,
+                    password
+                });
+            }
+        }
+    }
+
+    // Hem standart submit olayını yakala hem de submit butonlarına tıklamaları dinle (AJAX navigasyonu için)
+    document.addEventListener('submit', (event) => {
+        handlePossibleSubmit(event.target);
+    });
+
+    document.addEventListener('click', (event) => {
+        const btn = event.target.closest('button, input[type="submit"], input[type="button"]');
+        if (btn) {
+            const form = btn.form || btn.closest('form');
+            if (form) {
+                handlePossibleSubmit(form);
+            }
+        }
+    });
+});

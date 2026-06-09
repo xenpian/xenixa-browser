@@ -4,8 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yer İşaretleri</title>
+    <title data-translate="bookmarks_title">Yer İşaretleri</title>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -14,91 +15,130 @@
         }
 
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: #1a1a1a;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #2c2c2c;
             color: #e8eaed;
-            padding: 20px;
+            min-height: 100vh;
+            padding: 40px 0;
         }
 
-        .container {
-            max-width: 800px;
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        .page-container {
+            max-width: 720px;
             margin: 0 auto;
+            padding: 0 24px;
         }
 
-        h1 {
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+        }
+
+        .page-title {
             font-size: 24px;
-            margin-bottom: 20px;
+            font-weight: 600;
             color: #e8eaed;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-title i {
+            color: gray;
+            font-size: 26px;
         }
 
         .add-bookmark {
-            background: #333333;
-            border: 1px solid #3c4043;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: transparent;
+            border: none;
+            padding: 0;
+            margin-bottom: 24px;
         }
 
         .add-bookmark input {
-            width: 100%;
-            padding: 10px;
-            background: #202124;
-            border: 1px solid #3c4043;
-            border-radius: 4px;
+            flex: 1;
+            background: #3b3b3b;
+            border: 1px solid #444444;
+            border-radius: 12px;
+            padding: 10px 16px;
             color: #e8eaed;
             font-size: 14px;
-            margin-bottom: 10px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .add-bookmark input::placeholder {
+            color: gray;
+        }
+
+        .add-bookmark input:focus {
+            border-color: #a78bfa;
         }
 
         .add-bookmark button {
-            background: #8ab4f8;
-            color: #1a1a1a;
-            border: none;
             padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
+            background: rgba(167, 139, 250, 0.15);
+            color: #a78bfa;
+            border: 1px solid rgba(167, 139, 250, 0.3);
+            border-radius: 12px;
             font-size: 14px;
             font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
 
         .add-bookmark button:hover {
-            background: #aecbfa;
+            background: rgba(167, 139, 250, 0.25);
+            border-color: rgba(167, 139, 250, 0.4);
         }
 
         .bookmarks-list {
             display: grid;
-            gap: 8px;
+            gap: 4px;
         }
 
         .bookmark-item {
-            background: #333333;
-            border: 1px solid #3c4043;
-            border-radius: 8px;
-            padding: 12px;
             display: flex;
             align-items: center;
             gap: 12px;
-            transition: background 0.2s;
+            padding: 10px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.1s;
+            background: transparent;
+            border: none;
         }
 
         .bookmark-item:hover {
-            background: #3c4043;
+            background: rgba(255, 255, 255, 0.06);
         }
 
         .bookmark-favicon {
-            width: 32px;
-            height: 32px;
-            border-radius: 4px;
-            background: #202124;
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
         }
 
         .bookmark-favicon img {
             width: 16px;
             height: 16px;
+        }
+
+        .bookmark-favicon i {
+            font-size: 14px;
+            color: gray;
         }
 
         .bookmark-info {
@@ -107,81 +147,110 @@
         }
 
         .bookmark-title {
-            font-size: 14px;
-            font-weight: 500;
+            font-size: 13px;
             color: #e8eaed;
-            margin-bottom: 4px;
-            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .bookmark-url {
-            font-size: 12px;
-            color: #9aa0a6;
-            white-space: nowrap;
+            font-size: 11px;
+            color: gray;
             overflow: hidden;
             text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-top: 2px;
         }
 
         .bookmark-actions {
             display: flex;
-            gap: 8px;
+            gap: 4px;
+            flex-shrink: 0;
         }
 
-        .bookmark-actions button {
-            background: none;
+        .bookmark-action-btn {
+            width: 28px;
+            height: 28px;
             border: none;
-            color: #9aa0a6;
+            background: transparent;
+            color: gray;
             cursor: pointer;
-            padding: 4px;
-            border-radius: 4px;
-            transition: color 0.2s, background 0.2s;
+            border-radius: 6px;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.15s, background 0.15s, color 0.15s;
         }
 
-        .bookmark-actions button:hover {
+        .bookmark-item:hover .bookmark-action-btn {
+            opacity: 1;
+        }
+
+        .bookmark-action-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
             color: #e8eaed;
-            background: #3c4043;
+        }
+
+        .bookmark-action-btn.del-btn:hover {
+            background: rgba(242, 139, 130, 0.15);
+            color: #f28b82;
         }
 
         .empty-state {
             text-align: center;
-            padding: 40px;
-            color: #9aa0a6;
+            padding: 60px 0;
+            color: gray;
         }
 
         .empty-state i {
             font-size: 48px;
-            margin-bottom: 16px;
             display: block;
+            margin-bottom: 12px;
+            color: #3c4043;
+        }
+
+        .empty-state p {
+            font-size: 14px;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1><i class="fa-solid fa-bookmark"></i> Yer İşaretleri</h1>
+    <div class="page-container">
+        <div class="page-header">
+            <div class="page-title">
+                <i class="fa-solid fa-bookmark"></i>
+                <span data-translate="bookmarks_title">Yer İşaretleri</span>
+            </div>
+        </div>
 
         <div class="add-bookmark">
-            <input type="text" id="bookmarkUrl" placeholder="URL girin...">
-            <button onclick="addBookmark()">Ekle</button>
+            <input type="text" id="bookmarkUrl" data-translate-placeholder="add_bookmark_placeholder"
+                placeholder="URL girin...">
+            <button onclick="addBookmark()" data-translate="add_bookmark_btn">Ekle</button>
         </div>
 
         <div class="bookmarks-list" id="bookmarksList"></div>
     </div>
+    <script src="../translations.js"></script>
 
     <script>
         let bookmarks = [];
 
         function loadBookmarks() {
             try {
-                const data = new URLSearchParams(window.location.search).get('data');
-                if (data) {
-                    const parsed = JSON.parse(data);
-                    bookmarks = parsed.bookmarks || [];
+                const stored = localStorage.getItem('xenixa_bookmarks');
+                if (stored) {
+                    bookmarks = JSON.parse(stored);
+                } else {
+                    bookmarks = [];
                 }
             } catch (e) {
                 console.error('Failed to load bookmarks:', e);
+                bookmarks = [];
             }
             renderBookmarks();
         }
@@ -192,32 +261,42 @@
                 list.innerHTML = `
                     <div class="empty-state">
                         <i class="fa-solid fa-bookmark"></i>
-                        <p>Henüz yer işareti yok</p>
+                        <p>${window.XenixaI18n.t('no_bookmarks')}</p>
                     </div>
                 `;
                 return;
             }
 
-            list.innerHTML = bookmarks.map(bookmark => `
-                <div class="bookmark-item">
-                    <div class="bookmark-favicon">
-                        <img src="https://www.google.com/s2/favicons?domain=${new URL(bookmark.url).hostname}" alt="" onerror="this.style.display='none'">
-                        <i class="fa-solid fa-bookmark" style="display:${bookmark.favicon ? 'none' : 'block'}"></i>
+            const openText = window.XenixaI18n.t('open');
+            const deleteText = window.XenixaI18n.t('delete');
+
+            list.innerHTML = bookmarks.map(bookmark => {
+                let hostname = '';
+                try {
+                    hostname = new URL(bookmark.url).hostname;
+                } catch (e) { }
+
+                return `
+                    <div class="bookmark-item" onclick="openBookmark('${escapeHtml(bookmark.url)}')">
+                        <div class="bookmark-favicon">
+                            ${hostname ? `<img src="https://www.google.com/s2/favicons?domain=${hostname}" alt="" onerror="this.style.display='none'">` : ''}
+                            <i class="fa-solid fa-bookmark" style="display:${hostname ? 'none' : 'block'}"></i>
+                        </div>
+                        <div class="bookmark-info">
+                            <div class="bookmark-title">${escapeHtml(bookmark.title || bookmark.url)}</div>
+                            <div class="bookmark-url">${escapeHtml(bookmark.url)}</div>
+                        </div>
+                        <div class="bookmark-actions">
+                            <button class="bookmark-action-btn" onclick="event.stopPropagation(); openBookmark('${escapeHtml(bookmark.url)}')" title="${openText}">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </button>
+                            <button class="bookmark-action-btn del-btn" onclick="event.stopPropagation(); deleteBookmark('${bookmark.id}')" title="${deleteText}">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div class="bookmark-info">
-                        <div class="bookmark-title">${escapeHtml(bookmark.title || bookmark.url)}</div>
-                        <div class="bookmark-url">${escapeHtml(bookmark.url)}</div>
-                    </div>
-                    <div class="bookmark-actions">
-                        <button onclick="openBookmark('${escapeHtml(bookmark.url)}')" title="Aç">
-                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                        </button>
-                        <button onclick="deleteBookmark('${bookmark.id}')" title="Sil">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function addBookmark() {
@@ -250,7 +329,8 @@
         }
 
         function openBookmark(url) {
-            window.open(url, '_blank');
+            const { ipcRenderer } = require('electron');
+            ipcRenderer.send('open-url-in-active-tab', url);
         }
 
         function saveBookmarks() {
@@ -262,6 +342,12 @@
             div.textContent = text;
             return div.innerHTML;
         }
+
+        document.getElementById('bookmarkUrl').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                addBookmark();
+            }
+        });
 
         loadBookmarks();
     </script>

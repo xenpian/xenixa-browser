@@ -4,6 +4,7 @@ const os = require('os');
 const { exec } = require('child_process');
 const http = require('http');
 const fs = require('fs');
+const nativeBridge = require('./native-bridge');
 
 // Catch uncaught exceptions to prevent internal Electron errors (such as Render frame disposed) from crashing the application.
 process.on('uncaughtException', (error) => {
@@ -27,7 +28,8 @@ let permissionsFilePath = '';
 
 let settingsRegistry = {
   customWarpPath: '',
-  customTorPath: ''
+  customTorPath: '',
+  adBlockEnabled: true
 };
 let settingsFilePath = '';
 
@@ -38,6 +40,28 @@ function loadPermissions() {
     }
   } catch (err) {
     console.error("Failed to load permissions registry:", err);
+  }
+}
+
+let passwordsFilePath = '';
+let passwordsRegistry = [];
+
+function loadPasswords() {
+  try {
+    passwordsFilePath = path.join(app.getPath('userData'), 'passwords.json');
+    if (fs.existsSync(passwordsFilePath)) {
+      passwordsRegistry = JSON.parse(fs.readFileSync(passwordsFilePath, 'utf8'));
+    }
+  } catch (err) {
+    console.error("Failed to load passwords registry:", err);
+  }
+}
+
+function savePasswords() {
+  try {
+    fs.writeFileSync(passwordsFilePath, JSON.stringify(passwordsRegistry, null, 2), 'utf8');
+  } catch (err) {
+    console.error("Failed to save passwords registry:", err);
   }
 }
 
@@ -180,6 +204,33 @@ const openWindows = new Set();
 const activeDownloadSessions = new Set(); // çift kayıt önleme
 const permissionRequests = new Map();
 
+const activeDownloadsMap = new Map();
+
+function updateTaskbarProgress() {
+  if (openWindows.size === 0) return;
+  const win = Array.from(openWindows)[0];
+  if (!win || win.isDestroyed()) return;
+
+  let totalBytes = 0;
+  let receivedBytes = 0;
+  let hasActive = false;
+
+  for (const dl of activeDownloadsMap.values()) {
+    if (dl.totalBytes > 0) {
+      totalBytes += dl.totalBytes;
+      receivedBytes += dl.receivedBytes;
+      hasActive = true;
+    }
+  }
+
+  if (hasActive && totalBytes > 0) {
+    const progress = receivedBytes / totalBytes;
+    win.setProgressBar(Math.min(1.0, Math.max(0, progress)));
+  } else {
+    win.setProgressBar(-1);
+  }
+}
+
 // İndirme handler'ı
 async function handleDownload(win, item) {
   if (!win || win.isDestroyed() || !win.webContents || win.webContents.isDestroyed()) return;
@@ -211,6 +262,9 @@ async function handleDownload(win, item) {
     } catch (e) {}
   }
 
+  activeDownloadsMap.set(downloadId, { receivedBytes: 0, totalBytes: item.getTotalBytes() });
+  updateTaskbarProgress();
+
   let lastBytes = 0;
   let lastTime = Date.now();
 
@@ -223,6 +277,13 @@ async function handleDownload(win, item) {
       const speed = Math.round((received - lastBytes) / elapsed);
       lastBytes = received;
       lastTime = now;
+
+      const dlEntry = activeDownloadsMap.get(downloadId);
+      if (dlEntry) {
+        dlEntry.receivedBytes = received;
+        dlEntry.totalBytes = item.getTotalBytes();
+        updateTaskbarProgress();
+      }
 
       try {
         win.webContents.send('download-progress', {
@@ -256,6 +317,8 @@ async function handleDownload(win, item) {
       win.webContents.send('download-done', { id: downloadId, state, savePath, fileIcon: null });
     }).finally(() => {
       cleanupIPC();
+      activeDownloadsMap.delete(downloadId);
+      updateTaskbarProgress();
     });
   });
 
@@ -348,6 +411,14 @@ function createWindow(initialUrl = 'about:blank', x = null, y = null, isPopup = 
   }
 
   // webview event'leri
+  win.webContents.on('will-attach-webview', (event, webPreferences, params) => {
+    if (params.nodeintegration === 'true' || params.nodeintegration === true) {
+      webPreferences.nodeIntegration = true;
+      webPreferences.contextIsolation = false;
+      webPreferences.webSecurity = false;
+    }
+  });
+
   win.webContents.on('did-attach-webview', (_event, webContents) => {
     if (!webContents || webContents.isDestroyed()) return;
 
@@ -457,9 +528,14 @@ function createWindow(initialUrl = 'about:blank', x = null, y = null, isPopup = 
 app.on('ready', () => {
   permissionsFilePath = path.join(app.getPath('userData'), 'permissions.json');
   loadPermissions();
+  loadPasswords();
   settingsFilePath = path.join(app.getPath('userData'), 'settings.json');
   loadSettings();
   app.setAppUserModelId('com.xenixa.browser');
+
+  nativeBridge.initialize().catch(err => {
+    console.error('[MAIN] Failed to initialize native C++ bridge:', err);
+  });
 
   // Google'ın Electron'u tespit etmek için kullandığı Client Hints başlıklarını kaldır
   // Bu başlıklar olunca Google "Bu tarayıcı güvenli olmayabilir" hatası veriyor
@@ -477,6 +553,53 @@ app.on('ready', () => {
   ]);
 
   const { session } = require('electron');
+
+  // Reklam ve Takipçi Engelleyici (Ad Blocker)
+  const AD_DOMAINS = new Set([
+    'doubleclick.net', 'google-analytics.com', 'googlesyndication.com', 
+    'googleadservices.com', 'googletagservices.com', 'googletagmanager.com', 
+    'adsrvr.org', 'quantserve.com', 'adnxs.com', 'adtech.de', 
+    'pubmatic.com', 'rubiconproject.com', 'openx.net', 'yieldlab.net', 
+    'criteo.com', 'casalemedia.com', 'amazon-adsystem.com', 'taboola.com', 
+    'outbrain.com', 'popads.net', 'popcash.net', 'propellerads.com', 
+    'adcolony.com', 'unityads.unity3d.com', 'applovin.com', 'chartboost.com', 
+    'flurry.com', 'scorecardresearch.com', 'hotjar.com', 'mixpanel.com', 
+    'amplitude.com', 'facebook.net', 'connect.facebook.net', 
+    'adservice.google.com', 'analytics.twitter.com'
+  ]);
+
+  session.defaultSession.webRequest.onBeforeRequest({ urls: ['*://*/*'] }, (details, callback) => {
+    if (settingsRegistry.adBlockEnabled !== false) {
+      try {
+        const urlStr = details.url;
+        const url = new URL(urlStr);
+        const hostname = url.hostname.toLowerCase();
+        let parts = hostname.split('.');
+        let isAd = false;
+        while (parts.length >= 2) {
+          if (AD_DOMAINS.has(parts.join('.'))) {
+            isAd = true;
+            break;
+          }
+          parts.shift();
+        }
+        if (isAd) {
+          // Herhangi bir reklam engellendiğinde aktif pencerelere bildir
+          openWindows.forEach(win => {
+            if (win && !win.isDestroyed() && win.webContents && !win.webContents.isDestroyed()) {
+              try {
+                win.webContents.send('ad-blocked', urlStr);
+              } catch (e) {}
+            }
+          });
+          callback({ cancel: true });
+          return;
+        }
+      } catch (e) {}
+    }
+    callback({ cancel: false });
+  });
+
   session.defaultSession.webRequest.onBeforeSendHeaders({ urls: ['*://*/*'] }, (details, callback) => {
     const headers = details.requestHeaders;
     for (const key of Object.keys(headers)) {
@@ -1010,6 +1133,16 @@ ipcMain.handle('save-tool-paths', async (event, { warpPath, torPath }) => {
   return { success: true };
 });
 
+ipcMain.handle('get-adblock-state', async () => {
+  return settingsRegistry.adBlockEnabled !== false;
+});
+
+ipcMain.handle('save-adblock-state', async (event, enabled) => {
+  settingsRegistry.adBlockEnabled = !!enabled;
+  saveSettings();
+  return { success: true };
+});
+
 // ── Tor (Ağı) IPC Handlers ──────────────────────────────────────────────────
 
 async function findTorExecutable() {
@@ -1168,6 +1301,137 @@ app.on('will-quit', () => {
       torProcess.kill();
     } catch (e) {}
   }
+  nativeBridge.cleanup().catch(err => {
+    console.error('[MAIN] Failed to cleanup native C++ bridge:', err);
+  });
+});
+
+// ── Native C++ Engine IPC Handlers ──────────────────────────────────────────
+ipcMain.handle('native-create-tab', async (event, url) => {
+  return nativeBridge.createTab(url);
+});
+
+ipcMain.handle('native-navigate', async (event, { tabId, url }) => {
+  return nativeBridge.navigate(tabId, url);
+});
+
+ipcMain.handle('native-close-tab', async (event, tabId) => {
+  return nativeBridge.closeTab(tabId);
+});
+
+ipcMain.handle('native-get-tabs', async () => {
+  return nativeBridge.getTabs();
+});
+
+ipcMain.handle('native-execute-script', async (event, { tabId, script }) => {
+  return nativeBridge.executeScript(tabId, script);
+});
+
+// ── Password Manager IPC Handlers ───────────────────────────────────────────
+ipcMain.handle('get-passwords', async () => {
+  return passwordsRegistry;
+});
+
+function broadcastPasswordsUpdated() {
+  for (const win of openWindows) {
+    if (win && !win.isDestroyed() && win.webContents && !win.webContents.isDestroyed()) {
+      try {
+        win.webContents.send('passwords-updated');
+      } catch (err) {}
+    }
+  }
+}
+
+ipcMain.handle('save-password', async (event, entry) => {
+  const existingIdx = passwordsRegistry.findIndex(p => p.origin === entry.origin && p.username === entry.username);
+  if (existingIdx >= 0) {
+    passwordsRegistry[existingIdx] = entry;
+  } else {
+    passwordsRegistry.push(entry);
+  }
+  savePasswords();
+  broadcastPasswordsUpdated();
+  return { success: true };
+});
+
+ipcMain.handle('delete-password', async (event, { origin, username }) => {
+  passwordsRegistry = passwordsRegistry.filter(p => !(p.origin === origin && p.username === username));
+  savePasswords();
+  broadcastPasswordsUpdated();
+  return { success: true };
+});
+
+ipcMain.on('suggest-save-password', (event, entry) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (win && !win.isDestroyed() && win.webContents && !win.webContents.isDestroyed()) {
+    win.webContents.send('suggest-save-password', entry);
+  }
+});
+
+ipcMain.handle('clear-site-cookies', async (event, origin) => {
+  try {
+    await session.defaultSession.clearStorageData({
+      origin: origin,
+      storages: ['cookies', 'localstorage', 'websql', 'indexdb']
+    });
+    return { success: true };
+  } catch (err) {
+    console.error('Failed to clear storage data for origin:', origin, err);
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.on('search-engines-updated', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (win && !win.isDestroyed() && win.webContents && !win.webContents.isDestroyed()) {
+    win.webContents.send('search-engines-updated');
+  }
+});
+
+// ── Special Pages (xenixa://) IPC Forwarders ─────────────────────────────────
+ipcMain.on('open-url-in-active-tab', (event, url) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (win && !win.isDestroyed() && win.webContents && !win.webContents.isDestroyed()) {
+    win.webContents.send('open-url-in-active-tab', url);
+  }
+});
+
+ipcMain.on('history-delete-item', (event, data) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (win && !win.isDestroyed() && win.webContents && !win.webContents.isDestroyed()) {
+    win.webContents.send('history-delete-item', data);
+  }
+});
+
+ipcMain.on('history-clear-all', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (win && !win.isDestroyed() && win.webContents && !win.webContents.isDestroyed()) {
+    win.webContents.send('history-clear-all');
+  }
+});
+
+ipcMain.on('downloads-clear-all', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (win && !win.isDestroyed() && win.webContents && !win.webContents.isDestroyed()) {
+    win.webContents.send('downloads-clear-all');
+  }
+});
+
+ipcMain.on('downloads-delete-item', (event, id) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (win && !win.isDestroyed() && win.webContents && !win.webContents.isDestroyed()) {
+    win.webContents.send('downloads-delete-item', id);
+  }
+});
+
+ipcMain.on('language-changed', (event, lang) => {
+  openWindows.forEach(win => {
+    if (win && !win.isDestroyed() && win.webContents && !win.webContents.isDestroyed()) {
+      try {
+        win.webContents.send('language-changed', lang);
+      } catch (e) {}
+    }
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
