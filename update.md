@@ -1,24 +1,24 @@
-# Xenixa Browser Güncelleme Notları
+# Xenixa Browser Update Notes
 
-Bu güncellemede tarayıcının görsel bütünlüğü, sekme yönetimi, kullanıcı dostu onboarding deneyimi ve geliştirici/kullanıcı yenileme (caching) sorunları giderilmiştir. Yapılan değişiklikler aşağıda özetlenmiştir:
+This update addresses visual consistency, tab management, user-onboarding experience, and developer/user page refresh caching issues. The changes are summarized below:
 
-## 1. Sekme Üst Boşluğu ve Tıklanabilirlik
-* Sekmelerin (`.tab`) üst kısmına görsel boşluklar eklendi.
-* Bu boşluk alanına tıklandığında da sekmenin seçilebilmesi (tıklama alanının korunması) sağlandı.
+## 1. Tab Top Spacing and Clickability
+* Visual spacing has been added to the top of tabs (`.tab`).
+* Clicking inside this top spacing still selects/activates the tab (preserving the active click target area).
 
-## 2. Renk Standardizasyonu (Gray Geçişi)
-* Tarayıcı arayüzündeki (`ui/styles.css` ve `ui/index.html`) ve tüm dahili özel HTML sayfalarındaki (`settings.html`, `bookmarks.html`, `history.html`, `downloads.html`, `permission-test.html`) eski ikincil/açıklama gri renk kodları (`#9aa0a6`, `#5f6368` vb.) standart CSS `gray` anahtar kelimesiyle değiştirildi.
+## 2. Color Standardization (Transition to Gray)
+* All occurrences of old secondary/muted gray color codes (`#9aa0a6`, `#5f6368`, etc.) in the browser UI (`ui/styles.css` and `ui/index.html`) and all built-in HTML pages (`settings.html`, `bookmarks.html`, `history.html`, `downloads.html`, `permission-test.html`) have been standardized to use the CSS `gray` color keyword.
 
-## 3. Dahili Özel Sayfa Önbellekleme (Cache-Busting) Çözümü
-* Özel sayfaların (`xenixa://settings` vb.) yenilendiğinde Chromium'un agresif disk/bellek önbelleğinden eski kodları getirmesi engellendi.
-* Yenileme (Refresh) butonuna tıklandığında, sekmeye sağ tıklayıp "Yenile" dendiğinde veya klavye kısayolları (`Ctrl+R`, `F5`, `Ctrl+Shift+R`) kullanıldığında, her seferinde benzersiz zaman damgası üreten (`?v=Date.now()`) yeni `reloadTab` mekanizması geliştirildi.
+## 3. Special Internal Page Cache-Busting Solution
+* Prevented Chromium from aggressively caching and serving outdated resources when reloading special pages (like `xenixa://settings`).
+* A dynamic `reloadTab` mechanism was developed to append a fresh query parameter timestamp (`?v=Date.now()`) on every refresh. This affects the refresh toolbar button, the tab context menu "Reload" action, and the keyboard shortcuts (`Ctrl+R`, `F5`, `Ctrl+Shift+R`).
 
-## 4. Yeni Sekme Onboarding Tooltip'i
-* Tarayıcı ilk kez açıldığında, yeni sekme oluşturma (`+`) butonunu gösteren premium bir bilgilendirme balonu (tooltip) eklendi.
-* Tooltip üzerinde **"Kapat"** ve tercihi kalıcı olarak `localStorage`'a kaydedip bir daha göstermeyen **"Bir Daha Gösterme"** butonları konumlandırıldı.
-* Kullanıcı sekme açtığında veya tooltip dışına tıkladığında otomatik olarak kaybolması sağlandı.
-* Tasarım sadeleştirilerek tooltip'in `box-shadow` (kutu gölgesi) özelliği kaldırıldı.
+## 4. Onboarding Tooltip for New Tab
+* A premium, minimalist onboarding tooltip has been added to guide users to the new tab button (`+`) when launching the browser.
+* The tooltip contains a **"Close"** button and a **"Don't Show Again"** button which permanently persists the preference using `localStorage`.
+* The tooltip automatically disappears when a new tab is created or when clicking anywhere outside it.
+* To match the clean styling, the tooltip's `box-shadow` has been removed.
 
-## 5. Sağ Tık Menüsü (Context Menu) Tasarım Uyumu
-* Sekme sağ tık menüsü (`.tab-context-menu`) ile ana sağ tık menüsü (`.context-menu`) görsel olarak eşitlendi (arka plan rengi `#2c2c2c` yapıldı, hover efektleri ve mor renk vurguları eşitlendi).
-* Tasarımın düz ve temiz durması adına `.tab-context-menu`'nün `box-shadow` özelliği kaldırıldı.
+## 5. Right-Click Context Menu Harmonization
+* The tab context menu (`.tab-context-menu`) has been visually aligned with the main browser context menu (`.context-menu`), matching the background color (`#2c2c2c`), list spacing, hover effects, and secondary shortcuts.
+* The `box-shadow` on the `.tab-context-menu` has been removed for a flat, modern design.

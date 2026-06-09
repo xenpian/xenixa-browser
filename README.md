@@ -1,36 +1,38 @@
 # Xenixa Browser
 
-Özel Chromium C++ motoru ile Electron tabanlı tarayıcı.
+![Xenixa Browser](./screenshot.png)
 
-## Özellikler
+An Electron-based web browser integrated with a custom Chromium C++ engine.
 
-- ✅ Electron tabanlı uygulama yapısı
-- ✅ Özel C++ Chromium motoru entegrasyonu
-- ✅ Tab sistemi (tarayıcı gibi)
-- ✅ Modern ve şık UI
-- ✅ Native bridge ile C++ entegrasyonu
-- ✅ URL navigasyonu
-- ✅ Tab yönetimi (oluşturma, kapatma, geçiş)
+## Features
 
-## Kurulum
+- ✅ Electron-based application structure
+- ✅ Custom C++ Chromium engine integration
+- ✅ Tab system (browser-like tabs)
+- ✅ Modern and sleek UI
+- ✅ C++ integration via native bridge
+- ✅ URL navigation
+- ✅ Tab management (creation, closing, switching)
+
+## Installation
 
 ```bash
-# Bağımlılıkları yükle
+# Install dependencies
 npm install
 
-# Native modülleri derle
+# Compile native modules
 npm run build-native
 
-# Uygulamayı başlat
+# Start the application
 npm start
 ```
 
-## Yapı
+## Structure
 
 ```
 xenixa/
 ├── electron/
-│   ├── main.js           # Electron ana süreci
+│   ├── main.js           # Electron main process
 │   ├── preload.js        # Preload script
 │   └── native-bridge.js  # Native C++ bridge
 ├── native/
@@ -38,40 +40,40 @@ xenixa/
 │   ├── xen_engine.cpp    # C++ implementation
 │   └── xen_webview.cpp   # WebView implementation
 ├── ui/
-│   ├── index.html        # Ana UI
-│   ├── styles.css        # Stiller
+│   ├── index.html        # Main UI
+│   ├── styles.css        # Stylesheet
 │   └── renderer.js       # Renderer process
 ├── binding.gyp           # Node native binding config
 └── package.json          # Node.js config
 ```
 
-## Native C++ Motoru
+## Native C++ Engine
 
-Bu proje Electron'un kendi Chromium motorunu kullanmak yerine özel bir C++ Chromium entegrasyonu kullanır:
+This project uses a custom C++ Chromium integration instead of using Electron's default behavior:
 
-- `native/xen_engine.cpp`: Ana motor implementasyonu
-- `native/xen_webview.cpp`: WebView entegrasyonu
-- `binding.gyp`: Native modül build konfigürasyonu
+- `native/xen_engine.cpp`: Main engine implementation
+- `native/xen_webview.cpp`: WebView integration
+- `binding.gyp`: Native module build configuration
 
-## Tab Sistemi
+## Tab System
 
-- Yeni tab oluşturma (+ butonu)
-- Tab kapatma (× butonu)
-- Tablar arası geçiş
-- Her tab için bağımsız URL navigasyonu
+- Create new tabs (+ button)
+- Close tabs (× button)
+- Switch between active tabs
+- Independent URL navigation for each tab
 
-## Geliştirme
+## Development
 
 ```bash
-# Native modülleri rebuild et
+# Rebuild native modules
 npm run rebuild
 
-# Electron'u development mode'da çalıştır
+# Run Electron in development mode
 npm start
 ```
 
-## Notlar
+## Notes
 
-- Native modüller için Visual Studio Build Tools gereklidir (Windows)
-- Node.js ve npm kurulu olmalıdır
-- Chromium C++ entegrasyonu geliştirme aşamasındadır
+- Visual Studio Build Tools are required for compiling native modules (Windows)
+- Node.js and npm must be installed
+- Chromium C++ integration is under development
